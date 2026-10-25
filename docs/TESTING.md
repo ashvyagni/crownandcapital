@@ -4,10 +4,10 @@
 
 | Command | Result | Scope |
 |---|---|---|
-| `npm run lint` | PASS | Frontend and server TypeScript |
-| `npm test` | PASS | 5 Vitest files / 30 tests |
+| `npm run lint` | PASS | Frontend and server TypeScript (rerun 2026-10-25) |
+| `npm test` | PASS | 7 Vitest files / 37 tests (rerun 2026-10-25) |
 | `npm run test:server` | PASS | 2 real WebSocket integration tests |
-| `npm run test:e2e` | PASS | 18 Chromium tests, one worker; final complete run 2.1 minutes |
+| `npm run test:e2e` | PASS | 21 Chromium tests, one worker; run 2026-10-25: `21 passed (1.7m)` |
 | `npm run build` | PASS | ~309 kB initial app JS; deferred ~1.21 MB board JS, uncompressed |
 | Targeted visual browser rerun | PASS | Desktop home/board/deed and mobile home/bank after the final paper-card animation refinement |
 | Running Node service | PASS | `/health` returns `{"ok":true}` and built `/` returns HTTP 200 on port 2567 |
@@ -29,7 +29,7 @@ These are not twenty graphical browsers, a stress test, a public deployment, or 
 
 ## Browser tests
 
-The 18 tests exercise the existing local table/roster, acquisition, mortgage/redemption, confirmed bank sales, free pass, readable street directory, actual rent, fresh-table confirmation and keyboard/mobile reachability; then verify reload during an unfinished purchase and after acquisition; collateral and partial repayment; stocked factory production/sales and reload; hotseat auction settlement; bilateral acceptance and balances; opt-in generated audio/volume persistence; two isolated browser contexts creating/joining/starting and reclaiming a pending turn on reload; and desktop/mobile composition plus reduced-motion fallback.
+The 21 tests exercise the existing local table/roster, acquisition, mortgage/redemption, confirmed bank sales, free pass, readable street directory, actual rent, fresh-table confirmation and keyboard/mobile reachability; then verify reload during an unfinished purchase and after acquisition; collateral and partial repayment; stocked factory production/sales and reload; hotseat auction settlement; bilateral acceptance and balances; opt-in generated audio/volume persistence; two isolated browser contexts creating/joining/starting and reclaiming a pending turn on reload; and desktop/mobile composition plus reduced-motion fallback.
 
 Audio instrumentation confirms oscillators are created after an opt-in gesture and remain absent before opt-in. It is not a human listening/volume-quality review.
 
@@ -46,3 +46,9 @@ Audio instrumentation confirms oscillators are created after an opt-in gesture a
 ## Remaining coverage boundaries
 
 Chromium only; no broad physical-device/Safari/Firefox matrix, audited public hosting, proxy/TLS rollout, account recovery, host takeover, full debt workout, economic balance simulation, multi-writer storage or disaster-recovery benchmark. Those must not be implied by the current checks.
+
+## Artifact decisions (2026-10-25)
+
+- Removed `tests/reference-inspection.mjs`: a one-off read-only scraper of an external site writing to a hardcoded temp path; not part of the project suite.
+- Kept `test-results/audit-2026-10-25/` screenshots on disk, ignored by git.
+- `.data/` (room token hashes) and `.data/e2e-rooms/` are git-ignored and were never committed.
