@@ -85,10 +85,14 @@
 .map-hint { position: absolute; left: 10px; right: 10px; top: 10px; pointer-events: none; color: var(--navy); font-size: .65rem; font-weight: 800; display: flex; justify-content: space-between; gap: 8px; }
 @keyframes deal-card { from { transform: translateY(14px) rotate(-.5deg); } to { transform: none; } }
 @media (max-width: 600px) {
-  .game-page { padding-bottom: 85px; }
-  .turn-action { position: fixed; bottom: 0; left: 0; right: 0; z-index: 10; background: var(--deep); padding: 10px 18px 16px; margin: 0; border-top: 2px solid var(--mint); border-bottom: 0; }
-  .turn-action > p, .turn-action > .dice-result { display: none; }
+  /* The fixed action bar now carries the turn guidance too, so page content and
+     the space directory scroll clear of it using --turn-bar-space (safe area below). */
+  .game-page { padding-bottom: var(--turn-bar-space); }
+  .turn-action { position: fixed; bottom: 0; left: 0; right: 0; z-index: 10; background: var(--deep); padding: 10px 16px calc(12px + env(safe-area-inset-bottom)); margin: 0; border-top: 2px solid var(--mint); border-bottom: 0; }
+  .turn-action > p { display: block; margin: 0 0 9px; font-size: .78rem; line-height: 1.35; }
+  .turn-action > .dice-result { display: none; }
   .turn-action .roll-button { margin: 0; min-height: 46px; }
+  .map-directory, .map-directory > summary { scroll-margin-bottom: var(--turn-bar-space); }
   .gameplay-dialog { padding: 22px 18px; }
   .gameplay-roster-edit > div { grid-template-columns: 36px minmax(0, 1fr) 65px; }
   .gameplay-roster-edit select { grid-column: 2; grid-row: auto; }
