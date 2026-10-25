@@ -47,6 +47,7 @@ export class CityScene extends Phaser.Scene {
   private activeId?: string
   private factories: SessionFactory[] = []
   private loans: SessionLoan[] = []
+  private economySignature = ''
 
   constructor() { super('CityScene') }
 
@@ -105,6 +106,12 @@ export class CityScene extends Phaser.Scene {
   setEconomyMarkers(factories?: SessionFactory[], loans?: SessionLoan[]) {
     this.factories = factories ?? []
     this.loans = loans ?? []
+    // Commands clone state every time, so array identity never changes; compare
+    // the rendered economy data instead and skip the full-board rebuild when
+    // no marker actually changed (the common case: roll/finish/bid).
+    const signature = `${this.factories.map(f => `${f.propertyId}:${f.level}`).join('|')}#${this.loans.map(l => `${l.propertyId}:${l.remaining}`).join('|')}`
+    if (signature === this.economySignature) return
+    this.economySignature = signature
     if (this.snapshot && this.nodes) this.drawNodes(this.snapshot)
   }
 
@@ -267,12 +274,12 @@ export class CityScene extends Phaser.Scene {
   private factoryMarker(factory: SessionFactory) {
     const badge = this.add.container(30, -30)
     const g = this.add.graphics()
-    g.fillStyle(0x173d40, 0.3).fillRect(-10, -7, 21, 17)
+    g.fillStyle(INK, 0.3).fillRect(-10, -7, 21, 17)
     g.fillStyle(0xd7ad70).fillRect(-9, -8, 19, 16)
     g.lineStyle(2, INK).strokeRect(-9, -8, 19, 16)
     g.fillStyle(INK).fillRect(3, -15, 5, 8)
-    g.fillStyle(0xeee8d5).fillRect(-6, -4, 5, 5).fillRect(1, -4, 5, 5)
-    for (let level = 1; level < Math.min(factory.level, 4); level++) g.fillStyle(INK).fillRect(-9 + level * 5, 5, 3, 3)
+    g.fillStyle(PAPER).fillRect(-6, -4, 5, 5).fillRect(1, -4, 5, 5)
+    for (let pip = 0; pip < Math.min(factory.level, 3); pip++) g.fillStyle(INK).fillRect(-9 + pip * 5, 5, 3, 3)
     badge.add(g)
     return badge
   }
@@ -281,10 +288,10 @@ export class CityScene extends Phaser.Scene {
   private loanMarker() {
     const badge = this.add.container(-30, -30)
     const g = this.add.graphics()
-    g.fillStyle(0x173d40, 0.3).fillCircle(-1, -1, 10)
+    g.fillStyle(INK, 0.3).fillCircle(-1, -1, 10)
     g.fillStyle(0xa95d43).fillCircle(0, 0, 9)
     g.lineStyle(2, INK).strokeCircle(0, 0, 9)
-    g.lineStyle(2, 0xeee8d5).lineBetween(-5, 3, 5, -3)
+    g.lineStyle(2, PAPER).lineBetween(-5, 3, 5, -3)
     badge.add(g)
     return badge
   }
