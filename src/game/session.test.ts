@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyCommand, createSession, FACTORY_COST, validateSession } from './session';
+import { applyCommand, createSession, FACTORY_COST, RECEIPT_CAP, validateSession, type SessionEntry } from './session';
 import { purchase } from './index';
 
 describe('deterministic shared session', () => {
@@ -76,6 +76,30 @@ describe('deterministic shared session', () => {
     const finished = applyCommand(rolled, 'player-1', { type: 'pass' });
     expect(finished.game.activePlayer).toBe(1);
     expect(finished.pendingId).toBeNull();
+  });
+
+  it('caps oversized receipt history to the newest RECEIPT_CAP entries', () => {
+    const seeded = createSession();
+    seeded.receipts = Array.from({ length: 10_000 }, (_, i) => ({ id: `legacy-${i}`, turn: 0, kind: 'roll', amount: i, note: `legacy receipt ${i}` }) as SessionEntry);
+    expect(validateSession(seeded)).toBe(true);
+    const next = applyCommand(seeded, 'player-1', { type: 'roll' });
+    expect(next.receipts.length).toBeLessThanOrEqual(RECEIPT_CAP);
+    expect(next.receipts.some(r => r.id === 'legacy-0')).toBe(false);
+    expect(next.receipts.some(r => r.id === 'legacy-9999')).toBe(true);
+    expect(next.receipts.at(-1)?.id.startsWith('session-1-')).toBe(true);
+    expect(validateSession(next)).toBe(true);
+  });
+
+  it('keeps receipts bounded while a long game accumulates history', () => {
+    let s = createSession(7);
+    let peak = 0;
+    for (let i = 0; i < 1_200; i++) {
+      const actor = Object.values(s.game.players)[s.game.activePlayer].id;
+      s = applyCommand(s, actor, s.pendingId ? { type: 'finish' } : { type: 'roll' });
+      peak = Math.max(peak, s.receipts.length);
+      expect(s.receipts.length).toBeLessThanOrEqual(RECEIPT_CAP);
+    }
+    expect(peak).toBe(RECEIPT_CAP);
   });
 
   it('rejects malformed persisted state and adversarial amounts', () => {

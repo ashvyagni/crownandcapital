@@ -7,6 +7,8 @@ export const FACTORY_UPGRADE_COST = 150;
 export const FACTORY_SALE_PRICE = 50;
 export const MAX_FACTORY_LEVEL = 3;
 export const AUCTION_INCREMENT = 10;
+/** Accepted sessions retain only the newest receipt entries; older ones are dropped. */
+export const RECEIPT_CAP = 500;
 export type SessionEntry = Omit<LedgerEntry, 'kind'> & { kind: LedgerEntry['kind'] | 'roll' | 'factory' | 'materials' | 'energy' | 'production' | 'goods' | 'upgrade' | 'loan' | 'repayment' | 'auction' | 'trade' };
 export interface SessionFactory { propertyId: string; ownerId: string; level: number; materials: number; energy: number; goods: number; producedTurn: number; }
 export interface SessionLoan { id: string; borrowerId: string; propertyId: string; principal: number; remaining: number; total: number; }
@@ -227,7 +229,9 @@ export function applyCommand(session: GameSession, actorId: string, command: Ses
     }
     default: fail('Unknown session command');
   }
-  reconcile(s); s.revision++;
+  reconcile(s);
+  if (s.receipts.length > RECEIPT_CAP) s.receipts.splice(0, s.receipts.length - RECEIPT_CAP);
+  s.revision++;
   if (dedupeId) s.commandIds.push(dedupeId);
   s.commandIds = s.commandIds.slice(-1024);
   if (!validateSession(s)) fail('Command produced invalid session');
