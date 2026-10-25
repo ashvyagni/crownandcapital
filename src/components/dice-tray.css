@@ -1,0 +1,99 @@
+.dice-tray {
+  --dice-size: 76px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #f4e7cc;
+  font: 600 14px/1.4 system-ui, sans-serif;
+}
+
+.dice-tray__pair {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 22px 18px 16px;
+}
+
+.dice-tray__die {
+  position: relative;
+  width: var(--dice-size);
+  height: var(--dice-size);
+  perspective: 520px;
+}
+
+.dice-tray__die::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: auto 6px -21px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(8, 15, 22, .52);
+  filter: blur(8px);
+}
+
+.dice-tray__cube {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--dice-face-x)) rotateY(var(--dice-face-y));
+  transition: transform 550ms cubic-bezier(.2, .75, .2, 1);
+}
+
+.dice-tray__cube--rolling { animation: dice-tray-tumble 720ms linear infinite; }
+.dice-tray__die:nth-child(2) .dice-tray__cube--rolling { animation-delay: -310ms; animation-direction: reverse; }
+.dice-tray--still .dice-tray__cube { animation:none; transition:none; }
+
+.dice-tray__face {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  padding: 11px;
+  border: 2px solid #a7a69b;
+  border-radius: 14px;
+  backface-visibility: hidden;
+  background: linear-gradient(140deg, #415766, #1b303d 45%, #0c1e2a);
+  box-shadow: inset 3px 3px 6px #9fb1ab55, inset -4px -5px 8px #050e18aa, 0 1px 3px #050e18;
+}
+
+.dice-tray__face--1 { transform: translateZ(calc(var(--dice-size) / 2)); }
+.dice-tray__face--6 { transform: rotateY(180deg) translateZ(calc(var(--dice-size) / 2)); }
+.dice-tray__face--3 { transform: rotateY(90deg) translateZ(calc(var(--dice-size) / 2)); }
+.dice-tray__face--4 { transform: rotateY(-90deg) translateZ(calc(var(--dice-size) / 2)); }
+.dice-tray__face--2 { transform: rotateX(-90deg) translateZ(calc(var(--dice-size) / 2)); }
+.dice-tray__face--5 { transform: rotateX(90deg) translateZ(calc(var(--dice-size) / 2)); }
+
+.dice-tray__pip {
+  width: 11px;
+  height: 11px;
+  place-self: center;
+  border-radius: 50%;
+  background: #f5e7c8;
+  box-shadow: inset 1px 1px 2px #fff9, 0 1px 2px #07141b;
+}
+.dice-tray__pip--1 { grid-area: 1 / 1; }
+.dice-tray__pip--3 { grid-area: 1 / 3; }
+.dice-tray__pip--4 { grid-area: 2 / 1; }
+.dice-tray__pip--5 { grid-area: 2 / 2; }
+.dice-tray__pip--6 { grid-area: 2 / 3; }
+.dice-tray__pip--7 { grid-area: 3 / 1; }
+.dice-tray__pip--9 { grid-area: 3 / 3; }
+
+@keyframes dice-tray-tumble {
+  from { transform: rotateX(var(--dice-face-x)) rotateY(var(--dice-face-y)); }
+  to { transform: rotateX(calc(var(--dice-face-x) + 720deg)) rotateY(calc(var(--dice-face-y) + 1080deg)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dice-tray__cube { transition: none; }
+  .dice-tray__cube--rolling { animation: none; }
+}
+@supports not (transform-style: preserve-3d) {
+  .dice-tray__cube { transform:none; animation:none; transition:none; }
+  .dice-tray__face { display:none; transform:none; }
+  .dice-tray__face[data-current="true"] { display:grid; }
+}

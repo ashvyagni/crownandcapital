@@ -1,0 +1,107 @@
+/* Real game surfaces: title deeds, player setup, portfolio and board tools. */
+.gameplay-dialog {
+  width: min(680px, calc(100vw - 32px));
+  max-height: calc(100dvh - 36px);
+  overflow-y: auto;
+  animation: deal-card .22s ease-out both;
+}
+.gameplay-dialog > .eyebrow { padding-right: 28px; }
+.gameplay-dialog > h2 { font-size: clamp(2rem, 4vw, 3.2rem); margin-bottom: 20px; }
+.gameplay-dialog p { line-height: 1.5; }
+.gameplay-dialog button { min-height: 42px; }
+.gameplay-dialog select {
+  max-width: 150px; min-height: 44px; padding: 8px;
+  font: inherit; font-size: .78rem; border: 2px solid var(--navy);
+  background: var(--cream); color: var(--navy);
+}
+.gameplay-dialog select:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
+.gameplay-avatar { display: block; width: 48px; height: 64px; flex: 0 0 48px; }
+.profile-character { display: block; width: 100px; height: 140px; margin: 8px auto 20px; }
+.player-row > .gameplay-avatar { grid-row: 1 / 3; width: 40px; height: 58px; }
+.gameplay-roster-edit { max-height: 40vh; overflow-y: auto; padding: 5px 8px 5px 0; }
+.gameplay-roster-edit > div, .gameplay-add {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) 110px 65px;
+  align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #acb9ad;
+}
+.gameplay-roster-edit input, .gameplay-add input { min-width: 0; margin: 0; }
+.gameplay-roster-edit button, .gameplay-add button {
+  background: var(--navy); color: var(--cream); border: 2px solid var(--navy);
+  padding: 8px; font-size: .72rem; font-weight: 700;
+}
+.gameplay-add { grid-template-columns: minmax(0, 1fr) 110px 85px; padding: 15px 0; }
+.gameplay-dialog [role='alert'] { color: #9b3022; font-weight: 700; }
+.gameplay-dealer { display: flex; flex-direction: column; gap: 5px; padding: 14px 0 10px; }
+.gameplay-dealer > span { font-size: .62rem; font-weight: 800; letter-spacing: .12em; color: #8e382b; }
+.gameplay-dealer > strong { font-size: .94rem; }
+.landing-card-art { height: 146px; position: relative; margin-top: 8px; border: 2px solid var(--navy); background: #dbe5cd; }
+.landing-card-art > svg:first-child { width: 100%; height: 100%; object-fit: cover; }
+.dealer-portrait { position: absolute; height: 168px; width: 116px; right: 0; bottom: -3px; filter: drop-shadow(-5px 2px 0 #172d3d22); }
+.deed-ribbon { position: absolute; top: 8px; left: 8px; background: var(--navy); color: var(--cream); padding: 7px 10px; font-size: .63rem; letter-spacing: .09em; font-weight: 800; }
+.landing-actor { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; font-size: .82rem; margin-bottom: 14px; }
+.inspector-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 15px 0; }
+.inspector-stats > div { font-size: .68rem; text-transform: uppercase; letter-spacing: .03em; padding: 9px; border: 1px solid #a6b3ac; }
+.inspector-stats strong { display: block; font-size: 1rem; letter-spacing: 0; margin-top: 4px; }
+.command-panel .inspector-stats strong { color: var(--gold); }
+.ownership-label { font-size: .74rem; color: #43594d; }
+.ownership-success { padding: 10px; border: 2px solid #417b62; background: #d9ead0; color: #244f39; font-size: .84rem; font-weight: 700; }
+.landing-choices { display: flex; flex-wrap: wrap; gap: 14px; margin: 20px 0 10px; }
+.landing-choices .primary-button { flex: 1; }
+.landing-choices small { flex: 1 0 100%; }
+.gameplay-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin: 15px 0; }
+.gameplay-actions > button { background: var(--cream); border: 2px solid var(--navy); padding: 11px 8px; color: var(--navy); font-size: .8rem; font-weight: 800; }
+.gameplay-actions > button:hover:not(:disabled) { background: var(--mint); }
+.gameplay-actions small { grid-column: 1 / -1; font-size: .69rem; line-height: 1.5; color: #40554a; }
+.sale-confirm { grid-column: 1 / -1; padding: 15px; border: 2px solid var(--red); background: #ffe1c6; }
+.sale-confirm strong { font-size: .9rem; }
+.sale-confirm p { font-size: .78rem; }
+.sale-confirm button { margin: 0 10px 5px 0; background: var(--navy); color: var(--cream); padding: 8px 12px; border: 2px solid var(--navy); }
+.landing-receipts { font-size: .74rem; margin: 14px 0; border-top: 1px solid #a5b4a7; padding-top: 12px; }
+.landing-receipts summary { cursor: pointer; font-weight: 800; }
+.gameplay-receipt { padding-top: 6px; margin-bottom: 0; font-size: .72rem; }
+.special-outcome { padding: 15px; background: #dbe5cd; border: 2px solid var(--navy); }
+.portfolio { margin-bottom: 25px; }
+.portfolio > button { display: block; width: 100%; text-align: left; background: #294655; border: 1px solid #749088; color: var(--cream); margin: 7px 0; padding: 10px; font-size: .76rem; }
+.portfolio > button > span { display: block; color: var(--mint); font-size: .68rem; margin-top: 4px; }
+.portfolio > small { color: #c0d0ca; font-size: .74rem; }
+.portfolio .eyebrow, .ledger-preview .eyebrow { color: var(--mint); }
+.ledger-entry { display: flex; align-items: center; gap: 8px; justify-content: space-between; font-size: .71rem; padding: 10px 0; border-top: 1px solid #48606a; }
+.ledger-entry strong { color: var(--gold); white-space: nowrap; }
+.ledger-entry small { display: block; text-transform: uppercase; font-size: .58rem; color: var(--mint); margin-bottom: 4px; }
+.city-map-shell { position: absolute; inset: 0; }
+.board-loading { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: var(--navy); }
+.board-loading strong { font: 900 2rem 'Barlow Condensed', sans-serif; }
+.board-loading span { font-size: .8rem; }
+.city-map-canvas { touch-action: none; }
+.map-directory { position: absolute; bottom: 12px; left: 12px; right: 12px; z-index: 2; color: var(--navy); font-size: .78rem; }
+.map-directory > summary { cursor: pointer; border: 2px solid var(--navy); padding: 12px 14px; background: var(--cream); font-weight: 800; box-shadow: 3px 3px 0 var(--navy); width: fit-content; }
+.map-directory[open] { background: var(--cream); border: 2px solid var(--navy); box-shadow: 4px 4px 0 var(--navy); }
+.map-directory[open] > summary { border: 0; box-shadow: none; }
+.map-directory-content { padding: 0 12px 12px; }
+.map-directory-content label { display: block; font-size: .68rem; font-weight: 700; }
+.map-directory-content input { width: 100%; padding: 10px; margin: 7px 0 10px; border: 2px solid var(--navy); background: #fff; }
+.map-directory-list button { display: block; width: 100%; padding: 9px 5px; background: transparent; border: 0; border-top: 1px solid #acb9ad; text-align: left; color: var(--navy); font-size: .74rem; }
+.map-directory-list button:hover { background: #d9ead0; }
+.map-directory-list button strong { display: block; font-size: .65rem; margin-top: 4px; color: #3b674e; }
+.map-hint { position: absolute; left: 10px; right: 10px; top: 10px; pointer-events: none; color: var(--navy); font-size: .65rem; font-weight: 800; display: flex; justify-content: space-between; gap: 8px; }
+@keyframes deal-card { from { transform: translateY(14px) rotate(-.5deg); } to { transform: none; } }
+@media (max-width: 600px) {
+  .game-page { padding-bottom: 85px; }
+  .turn-action { position: fixed; bottom: 0; left: 0; right: 0; z-index: 10; background: var(--deep); padding: 10px 18px 16px; margin: 0; border-top: 2px solid var(--mint); border-bottom: 0; }
+  .turn-action > p, .turn-action > .dice-result { display: none; }
+  .turn-action .roll-button { margin: 0; min-height: 46px; }
+  .gameplay-dialog { padding: 22px 18px; }
+  .gameplay-roster-edit > div { grid-template-columns: 36px minmax(0, 1fr) 65px; }
+  .gameplay-roster-edit select { grid-column: 2; grid-row: auto; }
+  .gameplay-roster-edit > div > button { grid-column: 3; grid-row: 1 / 3; }
+  .gameplay-roster-edit .gameplay-avatar { grid-row: 1 / 3; width: 34px; }
+  .gameplay-add { grid-template-columns: minmax(0, 1fr) 90px; }
+  .gameplay-add input { grid-column: 1 / -1; }
+  .gameplay-add select { max-width: 100%; }
+  .map-hint { font-size: .55rem; }
+  .map-hint span { display: none; }
+  .gameplay-actions > button { font-size: .7rem; }
+  .landing-card-art { height: 115px; }
+  .dealer-portrait { height: 140px; width: 97px; }
+  .gameplay-dialog > h2 { padding-right: 10px; }
+  .map-heading { flex-wrap: wrap; }
+}

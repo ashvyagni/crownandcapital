@@ -1,0 +1,6 @@
+.city-map-shell { isolation: isolate; background: radial-gradient(ellipse at 48% 42%, #e4ddc3 0%, #b5aa8d 72%, #766f5d 100%); }
+.city-map-canvas { width: 100%; height: 100%; overflow: hidden; touch-action: none; }
+.city-map-canvas canvas { display: block; filter: drop-shadow(0 12px 14px rgba(30, 45, 41, .2)); }
+.city-map-shell .map-directory { max-width: min(100% - 24px, 460px); }
+.city-map-shell .map-directory-list button:focus-visible,
+.city-map-shell .map-directory > summary:focus-visible { outline: 3px solid #ad633f; outline-offset: 2px; }
