@@ -12,11 +12,11 @@
 
 Property price and rent are generated from district tier and slot. All calculations are integer arithmetic. The ledger records purchases, rent, salary, development, mortgage, refunds, and bankruptcy entries.
 
-The economy module also exposes the documented player-count candidates: `cashFactor = clamp(1 + .0125 × (P - 4), .95, 1.20)`, `priceFactor = clamp(1 + .0056 × (P - 4), .97, 1.09)`, and `rentFactor = clamp(1 - .0125 × (P - 4), .80, 1.025)`. These are tested as helpers but are not yet wired into match setup or balance simulations.
+The economy module also exposes the documented player-count candidates: `cashFactor = clamp(1 + .0125 × (P - 4), .95, 1.20)`, `priceFactor = clamp(1 + .0056 × (P - 4), .97, 1.09)`, and `rentFactor = clamp(1 - .0125 × (P - 4), .80, 1.025)`. These are not yet wired into match setup or balance simulations, and their standalone tests were removed with the dead `economy.ts` module.
 
 ## Integrated exchange rules
 
-The authoritative command implementation is `src/game/session.ts`; `economy.ts` remains a set of older standalone helper experiments, not the live exchange's transaction boundary.
+The authoritative command implementation is `src/game/session.ts`.
 
 | Factory action | Current rule |
 |---|---|
@@ -36,7 +36,7 @@ An auction opens only on the active player's landed bank deed. Bids increase by 
 Deals exchange cash and/or a vacant eligible deed on each side. Only the recipient accepts/rejects; only the author cancels. Ownership, cash and encumbrances are rechecked atomically on acceptance. Factory sites cannot be transferred without dismantling.
 
 ## Accounting contract
-Accepted transitions carry receipts with IDs, turn, kind, amount, reason and optional from/to IDs. Money uses safe integers; goods quantities are displayed as goods rather than CR. Online commands are checked against the current revision and persisted before broadcast. Failed commands do not partially commit. This is not a double-entry accounting database.
+Accepted transitions carry receipts with IDs, turn, kind, amount, reason and optional from/to IDs. Money uses safe integers; goods quantities are displayed as goods rather than CR. Online commands are checked against the current revision and persisted before broadcast. Failed commands do not partially commit. Accepted transitions retain the newest `RECEIPT_CAP` (500) receipt entries; older entries are dropped. This is not a double-entry accounting database.
 
 ## Balance status
 No balance simulation result is claimed. Production, fixed-fee loans, auctions and negotiations are live, but still need long-match economic tuning. Scheduled repayments, player-count modifiers and net-worth victory calculation are not integrated. Bankruptcy retains the earlier simplified settlement model: affected factory/loan records are removed and offers cancelled when their owner becomes inactive; priority debt workouts and recovery auctions remain future work.

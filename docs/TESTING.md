@@ -5,7 +5,7 @@
 | Command | Result | Scope |
 |---|---|---|
 | `npm run lint` | PASS | Frontend and server TypeScript (rerun 2026-10-25) |
-| `npm test` | PASS | 7 Vitest files / 37 tests (rerun 2026-10-25) |
+| `npm test` | PASS | 6 Vitest files / 34 tests (rerun 2026-10-25) |
 | `npm run test:server` | PASS | 2 real WebSocket integration tests |
 | `npm run test:e2e` | PASS | 21 Chromium tests, one worker; run 2026-10-25: `21 passed (1.7m)` |
 | `npm run build` | PASS | ~309 kB initial app JS; deferred ~1.21 MB board JS, uncompressed |
@@ -18,7 +18,7 @@ Vite still reports its deferred Phaser chunk size advisory. This is not a claim 
 
 The suite covers 144 unique contiguous perimeter coordinates and loop closure; 18 districts / 90 deeds / one Civic Gate; seeded dice and salary; deed purchase, development, rent, mortgages and exact redemption arithmetic; liquidation and bankruptcy basics; validated 2–20-seat setup; immutable session transitions and duplicate IDs; rejected malformed/unsafe values; local save/read/backup/quota behaviour; factory inventory and ownership; one production cycle across before/after-roll actions; dismantling; single-pledge collateral and partial/final repayment; auction minimums, folding, no-bid close and once-only settlement; recipient-only offer acceptance and atomic revalidation.
 
-Legacy `economy.ts` helper tests remain distinct from the live session implementation. No balance simulation is inferred from passing unit tests.
+No balance simulation is inferred from passing unit tests.
 
 ## Real server tests
 
