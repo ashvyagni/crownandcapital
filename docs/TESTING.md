@@ -7,7 +7,7 @@
 | `npm run lint` | PASS | Frontend and server TypeScript (rerun 2026-10-25) |
 | `npm test` | PASS | 6 Vitest files / 34 tests (rerun 2026-10-25) |
 | `npm run test:server` | PASS | 2 real WebSocket integration tests |
-| `npm run test:e2e` | PASS | 21 Chromium tests, one worker; run 2026-10-25: `21 passed (1.7m)` |
+| `npm run test:e2e` | PASS | 25 Chromium tests, one worker; run 2026-10-25: `21 passed (1.7m)` |
 | `npm run build` | PASS | ~309 kB initial app JS; deferred ~1.21 MB board JS, uncompressed |
 | Targeted visual browser rerun | PASS | Desktop home/board/deed and mobile home/bank after the final paper-card animation refinement |
 | Running Node service | PASS | `/health` returns `{"ok":true}` and built `/` returns HTTP 200 on port 2567 |

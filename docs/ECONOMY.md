@@ -12,7 +12,7 @@
 
 Property price and rent are generated from district tier and slot. All calculations are integer arithmetic. The ledger records purchases, rent, salary, development, mortgage, refunds, and bankruptcy entries.
 
-The economy module also exposes the documented player-count candidates: `cashFactor = clamp(1 + .0125 × (P - 4), .95, 1.20)`, `priceFactor = clamp(1 + .0056 × (P - 4), .97, 1.09)`, and `rentFactor = clamp(1 - .0125 × (P - 4), .80, 1.025)`. These are not yet wired into match setup or balance simulations, and their standalone tests were removed with the dead `economy.ts` module.
+The documented (not yet implemented) player-count candidates are: `cashFactor = clamp(1 + .0125 × (P - 4), .95, 1.20)`, `priceFactor = clamp(1 + .0056 × (P - 4), .97, 1.09)`, and `rentFactor = clamp(1 - .0125 × (P - 4), .80, 1.025)`. These are not yet wired into match setup or balance simulations, and their standalone tests were removed with the dead `economy.ts` module.
 
 ## Integrated exchange rules
 
