@@ -24,14 +24,24 @@ import { presentationEvents } from './game/presentation'
 const defaults = ['Avery Vale', 'Briar Holt', 'Cato Reed', 'Nia Sable']
 type Dialog = 'setup' | 'restart' | 'profile' | 'landing' | 'manage' | 'exchange' | 'online' | null
 const savedOnline = () => { try { return !!sessionStorage.getItem('crown-and-capital:online-identity:v1') && sessionStorage.getItem('crown-and-capital:online-identity:v1:active') !== '0' } catch { return false } }
+// Shareable room links look like <origin>/r/<10-character room code>; anything else under /r/ is a broken invite.
+type Invite = { code?: string; invalid?: boolean } | null
+const readInvite = (pathname: string): Invite => {
+  if (pathname !== '/r' && !pathname.startsWith('/r/')) return null
+  const code = pathname.replace(/^\/r\/?/, '').replace(/\/$/, '')
+  return /^[A-F0-9]{10}$/i.test(code) ? { code: code.toUpperCase() } : { invalid: true }
+}
 const cueFor = (kind: string): AudioCue => ({ roll: 'roll', purchase: 'purchase', rent: 'rent', mortgage: 'mortgage', unmortgage: 'mortgage', auction: 'auction', factory: 'factory', materials: 'factory', energy: 'factory', production: 'factory', goods: 'factory', upgrade: 'factory', loan: 'loan', repayment: 'loan' }[kind] as AudioCue | undefined) ?? 'turn'
 
 function App() {
   const [loaded] = useState(loadLocalSession)
+  // An invite is read before the first render: a valid /r/<code> opens the join flow immediately.
+  const [invite, setInvite] = useState<Invite>(() => readInvite(window.location.pathname))
+  const deepLink = useRef(!!invite?.code)
   const [local, setLocal] = useState(() => loaded.session ?? createSession(1847, defaults))
-  const [mode, setMode] = useState<'local' | 'online'>(() => savedOnline() ? 'online' : 'local')
+  const [mode, setMode] = useState<'local' | 'online'>(() => (deepLink.current || savedOnline()) ? 'online' : 'local')
   const [view, setView] = useState<'home' | 'game'>(() => loaded.session || savedOnline() ? 'game' : 'home')
-  const [dialog, setDialog] = useState<Dialog>(() => loaded.session?.pendingId ? 'landing' : null)
+  const [dialog, setDialog] = useState<Dialog>(() => deepLink.current ? 'online' : loaded.session?.pendingId ? 'landing' : null)
   const [selectedId, setSelectedId] = useState('property-2')
   const [names, setNames] = useState(defaults)
   const [characters, setCharacters] = useState([0, 1, 2, 3])
@@ -65,7 +75,13 @@ function App() {
   const winner = players.filter(p => p.status === 'active').length === 1 ? players.find(p => p.status === 'active') : null
   const latest = useRef({ session, identity: tableIdentity })
 
-  useEffect(() => { if (savedOnline()) online.resume() }, [online.resume])
+  useEffect(() => { if (!deepLink.current && savedOnline()) online.resume() }, [online.resume])
+  // Leaving an invite resets the address bar so a refresh cannot replay a dismissed link.
+  const clearInvitePath = () => {
+    setInvite(null)
+    if (window.location.pathname.startsWith('/r/')) window.history.replaceState(null, '', '/')
+  }
+  const dismissInvite = () => { clearInvitePath(); setDialog(null); setView('home') }
   useEffect(() => {
     document.title = `CROWN & CAPITAL — ${view === 'game' ? 'The living ledger' : 'An atlas of ambition'}`
   }, [view])
@@ -123,7 +139,7 @@ function App() {
   }
   const enter = () => { void audio.unlock(); setView('game'); setDialog(mode === 'online' && !online.room?.session ? 'online' : session.pendingId ? 'landing' : null) }
   const openOnline = () => { setMode('online'); setDialog('online'); setError(null) }
-  const leaveOnline = () => { online.leave(); setMode('local'); setDialog(null); setView('home') }
+  const leaveOnline = () => { online.leave(); clearInvitePath(); setMode('local'); setDialog(null); setView('home') }
   const exportSave = () => {
     const json = exportLocalSession(local); if (!json) { setError('Save could not be exported.'); return }
     const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }))
@@ -193,6 +209,10 @@ function App() {
       </div>
     </main>}
     {(error || saveError) && <div className="global-notice" role="alert"><span>{error ?? saveError}</span><button aria-label="Dismiss message" onClick={() => { setError(null); setSaveError(null) }}>×</button></div>}
+    {invite?.invalid && <DialogFrame title="That room link did not work" close={dismissInvite}>
+      <p>This invite points at <code>{window.location.pathname}</code>, which this server does not recognise. Room links look like <code>/r/</code> followed by a 10-character room code.</p>
+      <div className="landing-choices"><button className="primary-button" onClick={dismissInvite}>Go to the home page</button></div>
+    </DialogFrame>}
     {dialog === 'setup' && <DialogFrame title="Set your table" close={() => setDialog(null)}>
       <p>Choose 2–20 local players. Names, characters, deeds and every unfinished decision are saved automatically.</p>
       {error && <p role="alert">{error}</p>}
@@ -208,8 +228,8 @@ function App() {
       <section className="save-tools"><h3>Your saved city</h3><p>Local games save automatically on this browser. Online games are saved by the server and resumed with this tab's private seat identity.</p><button className="outline-button" onClick={exportSave}>Export local save</button><label className="field-label">Import local save (replaces local game)<input type="file" accept="application/json,.json" onChange={e => void importSave(e.target.files?.[0])} /></label></section>
       <div className="landing-choices"><button className="outline-button" onClick={openSetup}>{game.turn ? 'Start a fresh table' : 'Customize this table'} ↗</button><button className="outline-button" onClick={openOnline}>Online table ↗</button></div>
     </DialogFrame>}
-    {dialog === 'online' && <DialogFrame title="The online table" close={() => setDialog(null)} wide><OnlineLobby online={online} onLeave={leaveOnline} /></DialogFrame>}
-    {mode === 'online' && view === 'game' && !online.room?.session && dialog !== 'online' && <DialogFrame title="The online table" close={leaveOnline} wide><OnlineLobby online={online} onLeave={leaveOnline} /></DialogFrame>}
+    {dialog === 'online' && <DialogFrame title="The online table" close={() => { setDialog(null); clearInvitePath() }} wide><OnlineLobby online={online} onLeave={leaveOnline} initialCode={invite?.code} /></DialogFrame>}
+    {mode === 'online' && view === 'game' && !online.room?.session && dialog !== 'online' && <DialogFrame title="The online table" close={leaveOnline} wide><OnlineLobby online={online} onLeave={leaveOnline} initialCode={invite?.code} /></DialogFrame>}
     {dialog === 'exchange' && <DialogFrame title="The city exchange" close={() => setDialog(pending ? 'landing' : null)} wide><EconomyDesk session={session} playerId={selfId} online={mode === 'online'} busy={busy} send={send} initialTab={exchangeTab} /><button className="outline-button exchange-back" onClick={() => setDialog(pending ? 'landing' : null)}>{pending ? 'Back to landing' : 'Back to table'} ↗</button></DialogFrame>}
     {dialog === 'manage' && property && <DialogFrame title={`Manage ${property.name}`} close={() => setDialog(pending ? 'landing' : null)}><p>{cr(self.cash)} available · {property.mortgaged ? 'Mortgaged' : `Level ${property.development}`}</p>{property.ownerId === actor.id && myTurn ? actions(property) : <p>This deed belongs to {game.players[property.ownerId ?? '']?.name ?? 'the bank'}. Only the active owner can manage it.</p>}</DialogFrame>}
     {dialog === 'landing' && pending && !presentation.presenting && <DialogFrame title={auction ? 'Going once. Going twice.' : pending.name} close={() => setDialog(null)} locked={myTurn} wide={!!auction}>
