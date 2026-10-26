@@ -4,10 +4,10 @@
 
 | Command | Result | Scope |
 |---|---|---|
-| `npm run lint` | PASS | Frontend and server TypeScript (rerun 2026-10-25) |
-| `npm test` | PASS | 6 Vitest files / 34 tests (rerun 2026-10-25) |
-| `npm run test:server` | PASS | 2 real WebSocket integration tests |
-| `npm run test:e2e` | PASS | 25 Chromium tests, one worker; run 2026-10-25: `21 passed (1.7m)` |
+| `npm run lint` | PASS | Frontend and server TypeScript (rerun 2026-10-26) |
+| `npm test` | PASS | 6 Vitest files / 34 tests (rerun 2026-10-26) |
+| `npm run test:server` | PASS | 2 real WebSocket integration tests (rerun 2026-10-26) |
+| `npm run test:e2e` | PASS | 30 Chromium tests, one worker; run 2026-10-26: `30 passed (1.9m)` |
 | `npm run build` | PASS | ~309 kB initial app JS; deferred ~1.21 MB board JS, uncompressed |
 | Targeted visual browser rerun | PASS | Desktop home/board/deed and mobile home/bank after the final paper-card animation refinement |
 | Running Node service | PASS | `/health` returns `{"ok":true}` and built `/` returns HTTP 200 on port 2567 |
@@ -29,7 +29,7 @@ These are not twenty graphical browsers, a stress test, a public deployment, or 
 
 ## Browser tests
 
-The 21 tests exercise the existing local table/roster, acquisition, mortgage/redemption, confirmed bank sales, free pass, readable street directory, actual rent, fresh-table confirmation and keyboard/mobile reachability; then verify reload during an unfinished purchase and after acquisition; collateral and partial repayment; stocked factory production/sales and reload; hotseat auction settlement; bilateral acceptance and balances; opt-in generated audio/volume persistence; two isolated browser contexts creating/joining/starting and reclaiming a pending turn on reload; and desktop/mobile composition plus reduced-motion fallback.
+The 30 tests exercise the existing local table/roster, acquisition, mortgage/redemption, confirmed bank sales, free pass, readable street directory, actual rent, fresh-table confirmation and keyboard/mobile reachability; then verify reload during an unfinished purchase and after acquisition; collateral and partial repayment; stocked factory production/sales and reload; hotseat auction settlement; bilateral acceptance and balances; opt-in generated audio/volume persistence; two isolated browser contexts creating/joining/starting and reclaiming a pending turn on reload; a dropped room socket that shows waiting/reconnecting seat indicators on both clients before the same turn resumes; an abrupt mid-turn reload that reclaims the seat and returns the desk; a departed creator leaving a reserved, still-joinable room; and desktop/mobile composition plus reduced-motion fallback.
 
 Audio instrumentation confirms oscillators are created after an opt-in gesture and remain absent before opt-in. It is not a human listening/volume-quality review.
 

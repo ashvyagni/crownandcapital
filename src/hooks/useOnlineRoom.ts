@@ -3,7 +3,12 @@ import { validateSession, type GameSession, type SessionCommand } from '../game/
 import { requestId as newRequestId } from '../services/requestId'
 
 export type RoomSnapshot = { code: string; hostId: string; started: boolean; seats: { id: string; name: string; character?: number; connected: boolean }[]; session: GameSession | null }
-type Status = 'offline' | 'connecting' | 'connected' | 'reconnecting'
+export type OnlineStatus = 'offline' | 'connecting' | 'connected' | 'reconnecting'
+type Status = OnlineStatus
+// Worded own-connection state for the online HUD; the raw token stays in the room banner.
+export function statusLabel(status: Status): string {
+  return status === 'connected' ? 'Connected' : status === 'connecting' ? 'Connecting…' : status === 'reconnecting' ? 'Reconnecting…' : 'Offline'
+}
 type Identity = { code: string; token: string }
 const KEY = 'crown-and-capital:online-identity:v1'
 const MAX_MESSAGE = 1_000_000

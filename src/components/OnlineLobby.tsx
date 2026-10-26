@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { useOnlineRoom } from '../hooks/useOnlineRoom'
+import { statusLabel, type useOnlineRoom } from '../hooks/useOnlineRoom'
 import { Character, CHARACTER_NAMES } from './Character'
 
 async function copyText(value: string): Promise<boolean> {
@@ -26,6 +26,8 @@ export function OnlineLobby({ online, onLeave, initialCode }: { online: ReturnTy
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => () => { if (copyTimer.current) clearTimeout(copyTimer.current) }, [])
   const waiting = online.status === 'connecting' || online.status === 'reconnecting' || online.pending
+  const room = online.room
+  const hostSeat = room ? room.seats.find(seat => seat.id === room.hostId) : undefined
   const inviteUrl = online.room ? `${window.location.origin}/r/${online.room.code}` : ''
   const copyInvite = async () => {
     const copied = await copyText(inviteUrl)
@@ -34,14 +36,14 @@ export function OnlineLobby({ online, onLeave, initialCode }: { online: ReturnTy
     if (copied) copyTimer.current = setTimeout(() => setCopyState('idle'), 4000)
   }
   return <div className="online-panel">
-    <p className="eyebrow">Private room / {online.status}</p>
+    <p className="eyebrow">Private room / {statusLabel(online.status)}</p>
     {online.room ? <>
       <p>Share this room code with your friends on this server.</p>
       <output className="room-code" aria-label="Room code">{online.room.code}</output>
       <div className="room-code-actions"><button className="outline-button" onClick={() => void copyInvite()}>Copy invite link</button><span role="status" aria-live="polite" aria-label="Invite link status">{copyState === 'copied' ? 'Invite link copied to your clipboard.' : copyState === 'blocked' ? 'Copying was blocked. Use the link below instead.' : ''}</span></div>
       {copyState === 'blocked' && <code className="room-code-fallback">{inviteUrl}</code>}
-      <div className="online-seats">{online.room.seats.map(seat => <div key={seat.id}><Character index={seat.character} className="gameplay-avatar" /><strong>{seat.name}{seat.id === online.playerId ? ' (you)' : ''}</strong><span>{seat.connected ? 'Connected' : 'Reconnecting'}{seat.id === online.room!.hostId ? ' · Host' : ''}</span></div>)}</div>
-      {!online.room.started && (online.playerId === online.room.hostId ? <button className="primary-button" disabled={waiting || online.room.seats.length < 2} onClick={online.start}>Start online game</button> : <p>The host will start once everyone has a seat.</p>)}
+      <div className="online-seats">{online.room.seats.map(seat => <div key={seat.id}><Character index={seat.character} className="gameplay-avatar" /><strong>{seat.name}{seat.id === online.playerId ? ' (you)' : ''}</strong><span>{seat.connected ? 'Connected' : 'Disconnected · seat reserved'}{seat.id === online.room!.hostId ? ' · Host' : ''}</span></div>)}</div>
+      {!online.room.started && (online.playerId === online.room.hostId ? <button className="primary-button" disabled={waiting || online.room.seats.length < 2} onClick={online.start}>Start online game</button> : <p role="status" aria-live="polite">{hostSeat && !hostSeat.connected ? `Waiting for ${hostSeat.name} — they are disconnected, their seat is reserved, and only they can start this table.` : 'The host will start once everyone has a seat.'}</p>)}
       {online.room.started && <p>Your server-saved table is ready. Reconnecting seats retain their deeds and balances.</p>}
     </> : <>
       <p>Host a private table or join a friend's room. Each device controls its own seat; the server checks every move.</p>

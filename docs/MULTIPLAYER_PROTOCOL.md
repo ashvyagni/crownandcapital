@@ -30,6 +30,7 @@ Accepted requests are persisted before broadcast. Duplicate seat request IDs ret
 ## Recovery and limits
 
 - A disconnected seat remains reserved, including its pending turn and assets. A valid token replaces the old connection. There is no AFK takeover or automatic turn skip.
+- Only the host starts, and the host identity never transfers. If the creator never returns, the lobby holds in an explicit waiting state with their seat reserved rather than offering anyone else a start control. Relaxing that gate would not unblock the room: a session always opens at seat 1 and every command, negotiations included, is active-player gated, so play would simply wait on that same absent seat while the irreversible start had already been committed. Room state survives the creator leaving — persistence is atomic, the departed seat stays reserved, and the room stays joinable and resumable.
 - A client retries resume at bounded exponential delays; manual retry remains available. Full account-based recovery after losing the tab's identity is not implemented.
 - Maximum payload 16 KiB; 40 incoming messages per connection per ten seconds; ten-second unauthenticated handshake deadline; 1,000 connection / 500 room caps; ping/pong cleanup; seven-day inactive-room expiry.
 - Origin policy accepts same-host browser origins or explicit `ALLOWED_ORIGINS`. Nonbrowser clients without Origin can connect but still need a room handshake and seat credential for reclaim.
@@ -37,4 +38,4 @@ Accepted requests are persisted before broadcast. Duplicate seat request IDs ret
 
 ## Verified
 
-Two-client commands, out-of-turn rejection, stale/duplicate protection, restart/token reclaim, twenty connected socket seats and a rejected twenty-first seat are covered in server tests. Two isolated browser contexts create/join/start and recover a pending turn on reload in browser tests. Neither test constitutes a twenty-browser load/balance benchmark.
+Two-client commands, out-of-turn rejection, stale/duplicate protection, restart/token reclaim, twenty connected socket seats and a rejected twenty-first seat are covered in server tests. Two isolated browser contexts create/join/start and recover a pending turn on reload in browser tests; reconnect tests add a dropped socket with waiting/reconnecting indicators on both clients before the same turn resumes, a mid-turn reload that reclaims the seat with its turn intact, and a departed creator leaving a reserved, still-joinable room. Neither test constitutes a twenty-browser load/balance benchmark.

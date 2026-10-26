@@ -12,7 +12,7 @@ import { DiceTray } from './components/DiceTray'
 import { CityCommentary } from './components/CityCommentary'
 import { useTurnPresentation } from './hooks/useTurnPresentation'
 import { usePresentationPreferences } from './hooks/usePresentationPreferences'
-import { useOnlineRoom } from './hooks/useOnlineRoom'
+import { useOnlineRoom, statusLabel } from './hooks/useOnlineRoom'
 import { useGameAudio } from './hooks/useGameAudio'
 import { applyCommand, createSession, type SessionCommand } from './game/session'
 import { ownershipGroup, ownsGroup, redemptionCost, rentFor, saleValue, validateRoster, type Property } from './game'
@@ -67,6 +67,11 @@ function App() {
   const self = game.players[selfId] ?? actor
   const myTurn = mode === 'local' || actor.id === online.playerId
   const busy = presentation.presenting || (mode === 'online' && (online.pending || online.status !== 'connected'))
+  // Online seat state: which seat holds the desk, and which other seats are waiting to reconnect.
+  const actorSeat = mode === 'online' ? online.room?.seats.find(seat => seat.id === actor.id) : undefined
+  const offlineSeats = mode === 'online' ? (online.room?.seats ?? []).filter(seat => !seat.connected && seat.id !== online.playerId) : []
+  const waitingLabel = offlineSeats.length ? `Waiting for ${offlineSeats.map(seat => seat.name).join(', ')} · seat reserved` : ''
+  const actorWaiting = !!online.room?.session && !!actorSeat && !actorSeat.connected
   const space = game.spaces.find(s => s.id === selectedId) ?? game.spaces[0]
   const property = space.kind === 'property' ? space : null
   const pending = session.pendingId ? game.spaces[game.players[session.pendingId].position] : null
@@ -179,7 +184,7 @@ function App() {
         <span className="match-pill">{mode === 'online' ? `ONLINE ${online.room?.code ?? ''}` : 'LOCAL TABLE'} • TURN {game.turn}</span>
         <div className="topbar-actions"><button className="outline-button small" onClick={() => setDialog('exchange')}>City exchange</button><button className="avatar-button" onClick={() => setDialog('profile')} aria-label="Open local profile">{self.name.slice(0, 2).toUpperCase()}</button></div>
       </header>
-      {mode === 'online' && <div className="connection-banner" role="status">Room {online.room?.code ?? '—'} · {online.status} · You are {online.room?.seats.find(s => s.id === online.playerId)?.name ?? 'connecting'}<button onClick={online.retry}>{online.status === 'connected' ? 'Refresh room state' : 'Reconnect'}</button>{online.error && <span role="alert">{online.error}</span>}</div>}
+      {mode === 'online' && <div className="connection-banner" role="status">Room {online.room?.code ?? '—'} · {online.status} · You are {online.room?.seats.find(s => s.id === online.playerId)?.name ?? 'connecting'}<span className="connection-state">{statusLabel(online.status)}</span>{waitingLabel && <span className="seat-waiting">{waitingLabel}</span>}<button onClick={online.retry}>{online.status === 'connected' ? 'Refresh room state' : 'Reconnect'}</button>{online.error && <span role="alert">{online.error}</span>}</div>}
       <div className="game-layout">
         <aside className="player-rail"><div className="rail-heading"><div><p className="eyebrow">The table</p><h2>{players.length} seats live</h2></div><button className="add-seat" onClick={openSetup} disabled={mode === 'local' && game.turn > 0} title={game.turn ? 'Seats lock after the first roll' : 'Add a player'} aria-label="Add a player">+</button></div>
           <div className="roster">{players.map((p, index) => <div className={`player-row ${p.id === actor.id ? 'active' : ''} ${p.status === 'bankrupt' ? 'bankrupt' : ''}`} key={p.id}><Character index={p.character ?? index % 6} className="gameplay-avatar" /><span className="player-details"><strong>{p.name}{mode === 'online' && p.id === selfId ? ' · you' : ''}</strong><small>{p.status === 'bankrupt' ? 'Bankrupt' : p.id === actor.id ? 'At the desk' : `Space ${p.position + 1}`}{mode === 'online' && !online.room?.seats.find(s => s.id === p.id)?.connected ? ' · offline' : ''}</small></span><span className="player-cash">{cr(p.cash)}</span></div>)}</div>
@@ -193,7 +198,7 @@ function App() {
           <div className="exchange-shortcuts"><button onClick={() => { setExchangeTab('Factories'); setDialog('exchange') }}>▥ Factories</button><button onClick={() => { setExchangeTab('Bank'); setDialog('exchange') }}>◇ City Bank</button><button onClick={() => { setExchangeTab('Auctions'); setDialog(auction ? 'landing' : 'exchange') }}>⚑ Auctions{auction ? ' · LIVE' : ''}</button><button onClick={() => { setExchangeTab('Deals'); setDialog('exchange') }}>↔ Negotiations{session.economy.offers.some(o => o.status === 'open') ? ' · NEW' : ''}</button></div>
         </section>
         <aside className="command-panel"><div className="command-heading"><p className="eyebrow">Current desk</p><h2>{actor.name}</h2><span>Space {actor.position + 1}{!myTurn ? ' · Waiting for their move' : ''}</span></div><div className="balance-block"><span>Available balance</span><strong>{cr(actor.cash)}</strong></div>
-          <div className="turn-action"><p role="status">{winner ? `${winner.name} wins the table!` : presentation.phase === 'rolling' ? 'The dice are on the table…' : presentation.phase === 'moving' ? `Following the route · ${session.lastRoll?.total} stops` : presentation.phase === 'syncing' ? 'Synchronizing the table…' : pending ? auction ? 'Auction live · bid or fold to continue.' : session.landingOffer ? 'Choose whether to acquire the deed or open bidding.' : 'Landing settled · manage assets or end turn.' : `${actor.name} is at the desk. Roll when ready.`}</p>{session.lastRoll && <div className="dice-result"><DiceTray first={session.lastRoll.first} second={session.lastRoll.second} rolling={presentation.phase === 'rolling'} reducedMotion={presentation.snapped} /></div>}
+          <div className="turn-action"><p role="status">{winner ? `${winner.name} wins the table!` : presentation.phase === 'rolling' ? 'The dice are on the table…' : presentation.phase === 'moving' ? `Following the route · ${session.lastRoll?.total} stops` : presentation.phase === 'syncing' ? 'Synchronizing the table…' : actorWaiting ? `Waiting for ${actor.name} — seat reserved while they reconnect.` : pending ? auction ? 'Auction live · bid or fold to continue.' : session.landingOffer ? 'Choose whether to acquire the deed or open bidding.' : 'Landing settled · manage assets or end turn.' : `${actor.name} is at the desk. Roll when ready.`}</p>{session.lastRoll && <div className="dice-result"><DiceTray first={session.lastRoll.first} second={session.lastRoll.second} rolling={presentation.phase === 'rolling'} reducedMotion={presentation.snapped} /></div>}
             {presentation.presenting && <button className="outline-button" onClick={presentation.skip}>Skip animation →</button>}
             <button className="roll-button" disabled={!!pending || busy || !myTurn || !!winner || !!dialog || (mode === 'online' && !online.room?.started)} onClick={() => send({ type: 'roll' })}>Roll the dice ↗</button>
             {pending && !presentation.presenting && <button className="text-button" onClick={() => setDialog('landing')}>{auction ? 'Open live auction' : 'Resolve landing'} ↗</button>}
