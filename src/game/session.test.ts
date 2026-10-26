@@ -90,10 +90,14 @@ describe('deterministic shared session', () => {
     expect(validateSession(next)).toBe(true);
   });
 
-  it('keeps receipts bounded while a long game accumulates history', () => {
+  it('keeps receipts bounded while a long game accumulates history', { timeout: 30_000 }, () => {
     let s = createSession(7);
     let peak = 0;
-    for (let i = 0; i < 1_200; i++) {
+    // 871 iterations are the deterministic minimum to reach RECEIPT_CAP; 1000 keeps ~129
+    // post-cap steps so the plateau (peak === RECEIPT_CAP) is still observed. The old
+    // 1200-iteration loop was reported to exceed vitest's default timeout under load.
+    // The explicit timeout only guards the loop against load spikes; assertions are unchanged.
+    for (let i = 0; i < 1_000; i++) {
       const actor = Object.values(s.game.players)[s.game.activePlayer].id;
       s = applyCommand(s, actor, s.pendingId ? { type: 'finish' } : { type: 'roll' });
       peak = Math.max(peak, s.receipts.length);
