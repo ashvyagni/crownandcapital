@@ -84,9 +84,16 @@ function App() {
   // Leaving an invite resets the address bar so a refresh cannot replay a dismissed link.
   const clearInvitePath = () => {
     setInvite(null)
-    if (window.location.pathname.startsWith('/r/')) window.history.replaceState(null, '', '/')
+    deepLink.current = false
+    const path = window.location.pathname
+    if (path === '/r' || path.startsWith('/r/')) window.history.replaceState(null, '', '/')
   }
-  const dismissInvite = () => { clearInvitePath(); setDialog(null); setView('home') }
+  // A dismissed invite must not strand the app in online mode with no room behind it:
+  // otherwise "Enter the city" and "Online table" reopen the lobby forever.
+  const restoreLocalMode = () => {
+    if (invite?.code && !online.room && !savedOnline()) setMode('local')
+  }
+  const dismissInvite = () => { restoreLocalMode(); clearInvitePath(); setDialog(null); if (view !== 'game') setView('home') }
   useEffect(() => {
     document.title = `CROWN & CAPITAL — ${view === 'game' ? 'The living ledger' : 'An atlas of ambition'}`
   }, [view])
@@ -214,7 +221,7 @@ function App() {
       </div>
     </main>}
     {(error || saveError) && <div className="global-notice" role="alert"><span>{error ?? saveError}</span><button aria-label="Dismiss message" onClick={() => { setError(null); setSaveError(null) }}>×</button></div>}
-    {invite?.invalid && <DialogFrame title="That room link did not work" close={dismissInvite}>
+    {invite?.invalid && dialog === null && <DialogFrame title="That room link did not work" close={dismissInvite}>
       <p>This invite points at <code>{window.location.pathname}</code>, which this server does not recognise. Room links look like <code>/r/</code> followed by a 10-character room code.</p>
       <div className="landing-choices"><button className="primary-button" onClick={dismissInvite}>Go to the home page</button></div>
     </DialogFrame>}
@@ -233,7 +240,7 @@ function App() {
       <section className="save-tools"><h3>Your saved city</h3><p>Local games save automatically on this browser. Online games are saved by the server and resumed with this tab's private seat identity.</p><button className="outline-button" onClick={exportSave}>Export local save</button><label className="field-label">Import local save (replaces local game)<input type="file" accept="application/json,.json" onChange={e => void importSave(e.target.files?.[0])} /></label></section>
       <div className="landing-choices"><button className="outline-button" onClick={openSetup}>{game.turn ? 'Start a fresh table' : 'Customize this table'} ↗</button><button className="outline-button" onClick={openOnline}>Online table ↗</button></div>
     </DialogFrame>}
-    {dialog === 'online' && <DialogFrame title="The online table" close={() => { setDialog(null); clearInvitePath() }} wide><OnlineLobby online={online} onLeave={leaveOnline} initialCode={invite?.code} /></DialogFrame>}
+    {dialog === 'online' && <DialogFrame title="The online table" close={() => { restoreLocalMode(); setDialog(null); clearInvitePath() }} wide><OnlineLobby online={online} onLeave={leaveOnline} initialCode={invite?.code} /></DialogFrame>}
     {mode === 'online' && view === 'game' && !online.room?.session && dialog !== 'online' && <DialogFrame title="The online table" close={leaveOnline} wide><OnlineLobby online={online} onLeave={leaveOnline} initialCode={invite?.code} /></DialogFrame>}
     {dialog === 'exchange' && <DialogFrame title="The city exchange" close={() => setDialog(pending ? 'landing' : null)} wide><EconomyDesk session={session} playerId={selfId} online={mode === 'online'} busy={busy} send={send} initialTab={exchangeTab} /><button className="outline-button exchange-back" onClick={() => setDialog(pending ? 'landing' : null)}>{pending ? 'Back to landing' : 'Back to table'} ↗</button></DialogFrame>}
     {dialog === 'manage' && property && <DialogFrame title={`Manage ${property.name}`} close={() => setDialog(pending ? 'landing' : null)}><p>{cr(self.cash)} available · {property.mortgaged ? 'Mortgaged' : `Level ${property.development}`}</p>{property.ownerId === actor.id && myTurn ? actions(property) : <p>This deed belongs to {game.players[property.ownerId ?? '']?.name ?? 'the bank'}. Only the active owner can manage it.</p>}</DialogFrame>}

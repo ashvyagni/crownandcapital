@@ -36,6 +36,9 @@
 .auction-price { font: 600 3rem 'Fraunces', Georgia, serif; color: #96563e; margin: 12px 0; }
 .auction-price small { display: block; font: 500 .8rem 'DM Sans', sans-serif; margin-top: 9px; color: #456655; }
 .room-code { display: block; font: 600 clamp(1.8rem, 6vw, 3rem) 'Fraunces', Georgia, serif; letter-spacing: .07em; padding: 15px 0; word-break: break-all; }
+.room-code-actions { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px; }
+.room-code-actions [role='status'] { font-size: .8rem; }
+.room-code-fallback { display: block; overflow-wrap: anywhere; word-break: break-all; font-size: .8rem; margin-top: 8px; }
 .online-seats { display: grid; gap: 9px; margin-bottom: 22px; }
 .online-seats > div { display: grid; grid-template-columns: 48px 1fr; align-items: center; column-gap: 12px; padding: 8px 0; border-bottom: 1px solid #94a68f; }
 .online-seats .gameplay-avatar { grid-row: 1/3; }

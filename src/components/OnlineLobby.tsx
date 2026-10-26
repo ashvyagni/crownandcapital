@@ -11,10 +11,10 @@ async function copyText(value: string): Promise<boolean> {
     field.style.position = 'fixed'
     field.style.opacity = '0'
     document.body.append(field)
-    field.select()
-    const copied = document.execCommand('copy')
-    field.remove()
-    return copied
+    try {
+      field.select()
+      return document.execCommand('copy')
+    } finally { field.remove() }
   } catch { return false }
 }
 
