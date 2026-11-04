@@ -78,6 +78,11 @@ function App() {
   const selfId = mode === 'online' ? online.playerId ?? actor.id : actor.id
   const self = game.players[selfId] ?? actor
   const isBotSeat = (id: string | null | undefined) => !!(mode === 'local' && botSeats?.length && id && botSeats.includes(id))
+  // On a practice table an auction's "Bidding as" select defaults to the human
+  // seat, never to the automated desk that happens to hold the dialog.
+  const practiceBidder = isBotSeat(selfId)
+    ? Object.values(game.players).find(p => !botSeats!.includes(p.id) && p.status === 'active')?.id
+    : undefined
   // On a practice table the desk is only human when a human seat holds it.
   const myTurn = mode === 'local' ? !isBotSeat(actor.id) : actor.id === online.playerId
   const busy = presentation.presenting || (mode === 'online' && (online.pending || online.status !== 'connected'))
@@ -294,11 +299,11 @@ function App() {
     </DialogFrame>}
     {dialog === 'online' && <DialogFrame title="The online table" close={() => { restoreLocalMode(); setDialog(null); clearInvitePath() }} wide><OnlineLobby online={online} onLeave={leaveOnline} initialCode={invite?.code} /></DialogFrame>}
     {mode === 'online' && view === 'game' && !online.room?.session && dialog !== 'online' && <DialogFrame title="The online table" close={leaveOnline} wide><OnlineLobby online={online} onLeave={leaveOnline} initialCode={invite?.code} /></DialogFrame>}
-    {dialog === 'exchange' && <DialogFrame title="The city exchange" close={() => setDialog(pending ? 'landing' : null)} wide><EconomyDesk session={session} playerId={selfId} online={mode === 'online'} busy={busy} send={send} initialTab={exchangeTab} /><button className="outline-button exchange-back" onClick={() => setDialog(pending ? 'landing' : null)}>{pending ? 'Back to landing' : 'Back to table'} ↗</button></DialogFrame>}
+    {dialog === 'exchange' && <DialogFrame title="The city exchange" close={() => setDialog(pending ? 'landing' : null)} wide><EconomyDesk session={session} playerId={selfId} online={mode === 'online'} busy={busy} send={send} initialTab={exchangeTab} defaultBidder={practiceBidder} /><button className="outline-button exchange-back" onClick={() => setDialog(pending ? 'landing' : null)}>{pending ? 'Back to landing' : 'Back to table'} ↗</button></DialogFrame>}
     {dialog === 'manage' && property && <DialogFrame title={`Manage ${property.name}`} close={() => setDialog(pending ? 'landing' : null)}><p>{cr(self.cash)} available · {property.mortgaged ? 'Mortgaged' : `Level ${property.development}`}</p>{property.ownerId === actor.id && myTurn ? actions(property) : <p>This deed belongs to {game.players[property.ownerId ?? '']?.name ?? 'the bank'}. Only the active owner can manage it.</p>}</DialogFrame>}
     {dialog === 'landing' && pending && !presentation.presenting && <DialogFrame title={auction ? 'Going once. Going twice.' : pending.name} close={() => setDialog(null)} locked={myTurn} wide={!!auction}>
       {isBotSeat(session.pendingId) && !auction ? <p className="modal-footnote">{game.players[session.pendingId!].name} is an automated seat and resolves this landing by themself.</p> : <>
-      {auction ? <AuctionPanel session={session} playerId={selfId} online={mode === 'online'} busy={busy} send={send} /> : <>
+      {auction ? <AuctionPanel session={session} playerId={selfId} online={mode === 'online'} busy={busy} send={send} defaultBidder={practiceBidder} /> : <>
         <div className="landing-card-art"><DeedArtwork index={Math.floor(pending.space / 8)} special={pending.kind === 'special'} /><Character dealer className="dealer-portrait" /><span className="deed-ribbon">{pending.kind === 'property' ? 'TITLE DEED' : 'CITY STOP'} / {String(pending.space + 1).padStart(3, '0')}</span></div>
         <div className="gameplay-dealer"><span>THE DEALER SAYS</span><strong>{pending.kind === 'property' ? pending.ownerId === actor.id ? 'A fine addition to your empire.' : pending.ownerId ? 'Every address has its price.' : 'A little corner of the city. Yours?' : 'The city keeps its own rhythm.'}</strong></div>
         <p className="landing-actor">{actor.name}<b>{cr(actor.cash)} available</b></p>

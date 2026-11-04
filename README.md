@@ -49,9 +49,9 @@ Vite proxies `/ws` to the server. Read `.env.example` for actual environment opt
 
 ```bash
 npm run lint         # frontend and server TypeScript
-npm test             # 41 unit/rules/bot/persistence/geometry tests (7 Vitest files)
+npm test             # 43 unit/rules/bot/persistence/geometry tests (8 Vitest files)
 npm run test:server  # 2 real WebSocket integration tests, including 20 seats
-npm run test:e2e     # 32 Chromium tests; starts isolated frontend/server ports
+npm run test:e2e     # 35 Chromium tests; starts isolated frontend/server ports
 ```
 
 Install the Playwright Chromium browser if your environment does not already provide it. Browser tests cover two isolated clients, reload recovery, reconnect after a dropped socket with waiting indicators on both sides, full economy flows, generated audio cues, and desktop/mobile screenshots. Twenty socket connections are tested separately; this is not twenty full browsers or a performance benchmark.

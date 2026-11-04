@@ -5,11 +5,13 @@ import type { Property } from '../game'
 
 export const cr = (amount: number) => `CR ${amount.toLocaleString('en-GB')}`
 export type SendCommand = (command: SessionCommand, actorId?: string) => void
-type Props = { session: GameSession; playerId: string; online: boolean; busy: boolean; send: SendCommand; initialTab?: string }
+type Props = { session: GameSession; playerId: string; online: boolean; busy: boolean; send: SendCommand; initialTab?: string; defaultBidder?: string }
 
-export function AuctionPanel({ session, playerId, online, busy, send }: Props) {
+export function AuctionPanel({ session, playerId, online, busy, send, defaultBidder }: Props) {
   const auction = session.economy.auction
-  const [bidder, setBidder] = useState(playerId)
+  // Practice tables pass the human seat so an auction on a bot's landing never
+  // preselects the automated bidder holding the desk.
+  const [bidder, setBidder] = useState(() => defaultBidder ?? playerId)
   const [amount, setAmount] = useState('')
   if (!auction) return <p>No auction is open. Land on a bank-owned deed and choose <strong>Open auction</strong> on its card.</p>
   const actor = online ? playerId : bidder
