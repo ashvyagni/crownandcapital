@@ -5,7 +5,7 @@
 | Command | Result | Scope |
 |---|---|---|
 | `npm run lint` | PASS | Frontend and server TypeScript (rerun 2026-10-26) |
-| `npm test` | PASS | 6 Vitest files / 34 tests (rerun 2026-10-26) |
+| `npm test` | PASS | 7 Vitest files / 41 tests (rerun 2026-11-04) |
 | `npm run test:server` | PASS | 2 real WebSocket integration tests (rerun 2026-10-26) |
 | `npm run test:e2e` | PASS | 32 Chromium tests, one worker; run 2026-10-26: `32 passed (2.4m)` |
 | `npm run build` | PASS | ~309 kB initial app JS; deferred ~1.21 MB board JS, uncompressed |
@@ -16,7 +16,7 @@ Vite still reports its deferred Phaser chunk size advisory. This is not a claim 
 
 ## Rules, economy and persistence tests
 
-The suite covers 144 unique contiguous perimeter coordinates and loop closure; 18 districts / 90 deeds / one Civic Gate; seeded dice and salary; deed purchase, development, rent, mortgages and exact redemption arithmetic; liquidation and bankruptcy basics; validated 2–20-seat setup; immutable session transitions and duplicate IDs; rejected malformed/unsafe values; local save/read/backup/quota behaviour; factory inventory and ownership; one production cycle across before/after-roll actions; dismantling; single-pledge collateral and partial/final repayment; auction minimums, folding, no-bid close and once-only settlement; recipient-only offer acceptance and atomic revalidation.
+The suite covers 144 unique contiguous perimeter coordinates and loop closure; 18 districts / 90 deeds / one Civic Gate; seeded dice and salary; deed purchase, development, rent, mortgages and exact redemption arithmetic; liquidation and bankruptcy basics; validated 2–20-seat setup; immutable session transitions and duplicate IDs; rejected malformed/unsafe values; local save/read/backup/quota behaviour; factory inventory and ownership; one production cycle across before/after-roll actions; dismantling; single-pledge collateral and partial/final repayment; auction minimums, folding, no-bid close and once-only settlement; recipient-only offer acceptance and atomic revalidation; and the deterministic difficulty-1 bot engine (`src/game/bot.ts`): replay determinism, legality/purity sweeps across seeds and 2–4 seats, bot-vs-bot completion within 1,000 turns / 4,000 commands on three fixed seeds (29, 48, 12), and a 50-seed no-throw/no-deadlock sweep. Bot completion is a heuristic throughput check, not a balance guarantee.
 
 No balance simulation is inferred from passing unit tests.
 
