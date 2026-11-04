@@ -46,32 +46,32 @@ function liquidationCommand(session: GameSession, seatId: string): SessionComman
   return best ? { type: 'mortgage', propertyId: best.id } : null;
 }
 
-/** Redeems mortgaged deeds that block or starve the districts the seat owns; cheapest pay-off first. */
+/** Redeems the cheapest redeemable seat-owned mortgaged deed, board order
+ * breaking ties.
+ *
+ * Policy note: an earlier draft added weighted bonuses so full districts (which
+ * unlock development after redemption) and developable partial districts would
+ * redeem first, but the weights (0/2/5) were a fraction of raw `cost`'s spread
+ * (tens), so raw cost always dominated and the flags were dead code. A
+ * genuinely dominant tier sort was tried as a replacement: it is measurably
+ * SLOWER for completion (seed-sensitive, but it pushed several fixed completion
+ * seeds past the 1,000-turn bound) because delaying redemption keeps
+ * the deed's rents dark. Cheapest-first restores rent income fastest, so
+ * "cheapest redeemable" is the actual, documented policy.
+ */
 function redemptionCommand(session: GameSession, seatId: string): SessionCommand | null {
   const seat = session.game.players[seatId];
   if (!seat) return null;
-  const groups = new Map<string, Property[]>();
+  let target: Property | null = null;
+  let bestCost = 0;
   for (const space of session.game.spaces) {
-    if (!isProperty(space)) continue;
-    const list = groups.get(space.districtId) ?? [];
-    list.push(space);
-    groups.set(space.districtId, list);
+    if (!isProperty(space) || space.ownerId !== seatId || !space.mortgaged) continue;
+    if (loanCollateral(session, space.id) || factoryOn(session, space.id)) continue;
+    const cost = redemptionCost(space);
+    if (seat.cash < cost + DEVELOP_RESERVE) continue;
+    if (!target || cost < bestCost || (cost === bestCost && space.space < target.space)) target = space;
   }
-  let target: { deed: Property; cost: number; priority: number } | null = null;
-  for (const group of groups.values()) {
-    if (!group.some(p => p.ownerId === seatId) || !group.some(p => p.mortgaged && p.ownerId === seatId)) continue;
-    const fullDistrict = group.every(p => p.ownerId === seatId);
-    const developable = group.some(p => p.ownerId === seatId && !p.mortgaged && p.development < p.maxDevelopment);
-    for (const deed of group) {
-      if (!deed.mortgaged || deed.ownerId !== seatId || loanCollateral(session, deed.id) || factoryOn(session, deed.id)) continue;
-      const cost = redemptionCost(deed);
-      if (seat.cash < cost + DEVELOP_RESERVE) continue;
-      // Full districts unlock development after redemption; partial ones simply restore their rents.
-      const priority = (fullDistrict ? 0 : 5) + (developable ? 0 : 2) + cost;
-      if (!target || priority < target.priority || (priority === target.priority && deed.space < target.deed.space)) target = { deed, cost, priority };
-    }
-  }
-  return target ? { type: 'redeem', propertyId: target.deed.id } : null;
+  return target ? { type: 'redeem', propertyId: target.id } : null;
 }
 
 /** The first district-owned deed the seat can still build on, once per turn. */

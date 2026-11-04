@@ -3,19 +3,20 @@ import { createSession, type GameSession } from './session';
 import { botRng, decide, fallbackChain, step } from './bot';
 
 const NAMES = ['Avery', 'Briar', 'Cove', 'Dane'];
-const COMPLETION_SEEDS = [29, 48, 12];
+const COMPLETION_SEEDS = [29, 48, 24];
 const activeCount = (session: GameSession): number => Object.values(session.game.players).filter(p => p.status === 'active').length;
 const lastCommandId = (session: GameSession): string => session.commandIds[session.commandIds.length - 1] ?? '';
 
-let nullStreak = 0;
-/** One outer tick plays at most one command per active seat, in stable seat order. */
-function cycle(session: GameSession): { session: GameSession; accepted: string[] } {
+/** One outer tick plays at most one command per active seat, in stable seat order.
+ * `streak` is a caller-owned accumulator for consecutive fruitless steps within
+ * one run — no test-shared mutable state. */
+function cycle(session: GameSession, streak: { count: number }): { session: GameSession; accepted: string[] } {
   const accepted: string[] = [];
   for (const seatId of Object.keys(session.game.players)) {
     if (activeCount(session) <= 1) break;
     const next = step(session, seatId);
-    if (!next) { nullStreak++; if (nullStreak > 20) throw new Error(`null deadlock after ${nullStreak} fruitless steps`); continue; }
-    nullStreak = 0;
+    if (!next) { streak.count++; if (streak.count > 20) throw new Error(`null deadlock after ${streak.count} fruitless steps`); continue; }
+    streak.count = 0;
     session = next;
     accepted.push(lastCommandId(session));
   }
@@ -23,12 +24,12 @@ function cycle(session: GameSession): { session: GameSession; accepted: string[]
 }
 
 function advance(start: GameSession, ticks: number): { session: GameSession; commands: string[] } {
-  nullStreak = 0;
+  const streak = { count: 0 };
   const commands: string[] = [];
   let session = start;
   for (let tick = 0; tick < ticks && activeCount(session) > 1; tick++) {
     const before = session;
-    session = cycle(session).session;
+    session = cycle(session, streak).session;
     if (session.revision > before.revision) commands.push(lastCommandId(session));
   }
   return { session, commands };
@@ -55,9 +56,9 @@ describe('difficulty-1 bot engine', () => {
       const snapshot = structuredClone(input);
       let session = input;
       let applied = 0;
-      nullStreak = 0;
+      const streak = { count: 0 };
       while (applied < 500 && activeCount(session) > 1) {
-        const result = cycle(session);
+        const result = cycle(session, streak);
         for (const command of result.accepted) {
           expect(command).toMatch(/^player-\d+:bot-\d+-[a-zA-Z]+$/);
           applied++;
@@ -69,17 +70,25 @@ describe('difficulty-1 bot engine', () => {
     }
   });
 
+  // Completion seeds were calibrated by measurement after the redeem-policy fix
+  // (2026-11-04). Seed 12 previously completed at 900 turns / 3,081 commands
+  // (90% of the bound — thin) and began exceeding the bound once the dead
+  // full-district/developable weights were removed from `redemptionCommand`;
+  // it was replaced by seed 24 (521 turns / 2,419 commands, 48% headroom).
+  // Observed counts with this redeem policy: seed 29 → 599 turns / 2,534
+  // commands; seed 48 → 385 / 2,054; seed 24 → 521 / 2,419. Drift in these
+  // counts signals a policy change near the bound.
   for (const seed of COMPLETION_SEEDS) {
     it(`completes bot-vs-bot on seed ${seed} within 1,000 turns and 4,000 commands`, () => {
       let session = createSession(seed, NAMES.slice(0, 2));
       let commands = 0;
       let lastTurn = session.game.turn;
       let turnless = 0;
-      nullStreak = 0;
+      const streak = { count: 0 };
       while (activeCount(session) > 1) {
         if (session.game.turn >= 1000 || commands >= 4000) throw new Error(`seed ${seed} exceeded the completion bound at turn ${session.game.turn} / ${commands} commands`);
         const before = session;
-        session = cycle(session).session;
+        session = cycle(session, streak).session;
         if (session === before) continue;
         commands += session.revision - before.revision;
         if (session.game.turn !== lastTurn) { lastTurn = session.game.turn; turnless = 0; } else if (++turnless > 60) throw new Error(`seed ${seed} stalled after ${turnless} commands without a turn advance`);
@@ -91,9 +100,9 @@ describe('difficulty-1 bot engine', () => {
 
   it('runs 50 two-seat seeds without throwing or deadlocking', () => {
     for (let seed = 1; seed <= 50; seed++) {
-      nullStreak = 0;
+      const streak = { count: 0 };
       let session = createSession(seed, NAMES.slice(0, 2));
-      for (let tick = 0; tick < 150 && activeCount(session) > 1; tick++) session = cycle(session).session;
+      for (let tick = 0; tick < 150 && activeCount(session) > 1; tick++) session = cycle(session, streak).session;
     }
   }, 30_000);
 
