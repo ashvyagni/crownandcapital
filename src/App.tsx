@@ -15,8 +15,10 @@ import { usePresentationPreferences } from './hooks/usePresentationPreferences'
 import { useOnlineRoom, statusLabel } from './hooks/useOnlineRoom'
 import { useGameAudio } from './hooks/useGameAudio'
 import { applyCommand, createSession, type SessionCommand } from './game/session'
+import { botRng, step } from './game/bot'
 import { ownershipGroup, ownsGroup, redemptionCost, rentFor, saleValue, validateRoster, type Property } from './game'
 import { clearLocalSession, exportLocalSession, importLocalSession, loadLocalSession, saveLocalSession } from './services/localSession'
+import { clearPracticeSeats, loadPracticeSeats, savePracticeSeats } from './services/practiceSeats'
 import type { AudioCue } from './services/audio'
 import { requestId } from './services/requestId'
 import { presentationEvents } from './game/presentation'
@@ -35,13 +37,22 @@ const cueFor = (kind: string): AudioCue => ({ roll: 'roll', purchase: 'purchase'
 
 function App() {
   const [loaded] = useState(loadLocalSession)
+  // Automated seats survive resume: practice bot seat ids round-trip in their
+  // own storage entry beside the local save envelope (the session itself is
+  // plain, validateSession-checked data with no bot marking).
+  const [bootBots] = useState(() => loadPracticeSeats(loaded.session))
   // An invite is read before the first render: a valid /r/<code> opens the join flow immediately.
   const [invite, setInvite] = useState<Invite>(() => readInvite(window.location.pathname))
   const deepLink = useRef(!!invite?.code)
   const [local, setLocal] = useState(() => loaded.session ?? createSession(1847, defaults))
   const [mode, setMode] = useState<'local' | 'online'>(() => (deepLink.current || savedOnline()) ? 'online' : 'local')
   const [view, setView] = useState<'home' | 'game'>(() => loaded.session || savedOnline() ? 'game' : 'home')
-  const [dialog, setDialog] = useState<Dialog>(() => deepLink.current ? 'online' : loaded.session?.pendingId ? 'landing' : null)
+  const [dialog, setDialog] = useState<Dialog>(() => {
+    if (deepLink.current) return 'online'
+    const pending = loaded.session?.pendingId
+    // An unfinished automated seat resolves itself: no dialog is required from the human.
+    return pending && !(bootBots ?? []).includes(pending) ? 'landing' : null
+  })
   const [selectedId, setSelectedId] = useState('property-2')
   const [names, setNames] = useState(defaults)
   const [characters, setCharacters] = useState([0, 1, 2, 3])
@@ -53,6 +64,7 @@ function App() {
   const [confirmSale, setConfirmSale] = useState(false)
   const [exchangeTab, setExchangeTab] = useState('Factories')
   const [localTableId, setLocalTableId] = useState(0)
+  const [botSeats, setBotSeats] = useState<string[] | null>(bootBots)
   const [focusRequest, setFocusRequest] = useState(0)
   const preferences = usePresentationPreferences()
   const online = useOnlineRoom()
@@ -65,7 +77,9 @@ function App() {
   const actor = players[game.activePlayer]
   const selfId = mode === 'online' ? online.playerId ?? actor.id : actor.id
   const self = game.players[selfId] ?? actor
-  const myTurn = mode === 'local' || actor.id === online.playerId
+  const isBotSeat = (id: string | null | undefined) => !!(mode === 'local' && botSeats?.length && id && botSeats.includes(id))
+  // On a practice table the desk is only human when a human seat holds it.
+  const myTurn = mode === 'local' ? !isBotSeat(actor.id) : actor.id === online.playerId
   const busy = presentation.presenting || (mode === 'online' && (online.pending || online.status !== 'connected'))
   // Online seat state: which seat holds the desk, and which other seats are waiting to reconnect.
   const actorSeat = mode === 'online' ? online.room?.seats.find(seat => seat.id === actor.id) : undefined
@@ -78,6 +92,7 @@ function App() {
   const auction = session.economy.auction
   const landedRent = session.receipts.filter(r => r.turn === game.turn && r.kind === 'rent').at(-1)
   const winner = players.filter(p => p.status === 'active').length === 1 ? players.find(p => p.status === 'active') : null
+  const gameOver = !!winner
   const latest = useRef({ session, identity: tableIdentity })
 
   useEffect(() => { if (!deepLink.current && savedOnline()) online.resume() }, [online.resume])
@@ -107,6 +122,8 @@ function App() {
     if (mode === 'online') setView('game')
     if (presentation.presenting) return
     if (session.pendingId) {
+      // Automated seats resolve their own landing without a dialog; an open auction still needs the human.
+      if (!auction && isBotSeat(session.pendingId)) return
       setSelectedId(game.spaces[game.players[session.pendingId].position].id)
       setDialog('landing')
     } else setDialog(current => current === 'landing' || current === 'online' ? null : current)
@@ -120,6 +137,26 @@ function App() {
     }
     latest.current = { session, identity: tableIdentity }
   }, [session.revision, tableIdentity])
+
+  // Local practice driver (client-side only): from a useEffect keyed on the
+  // session so it re-arms after every accepted local command and covers
+  // resume-load without message loops. Each automated seat that has something
+  // to do — its own turn, its pending landing, an auction it may still contest
+  // or an offer addressed to it — plays `step()`'s first legal command 700ms
+  // later. A null `step` stops the loop for this tick instead of busy-looping,
+  // and a newer local command clears the pending timer before it can fire.
+  useEffect(() => {
+    if (mode !== 'local' || view !== 'game' || presentation.presenting || gameOver || !botSeats?.length) return
+    let timer: ReturnType<typeof setTimeout> | undefined
+    for (const seatId of botSeats) {
+      const next = step(local, seatId, botRng(local, seatId))
+      if (next) {
+        timer = setTimeout(() => setLocal(next), 700)
+        break
+      }
+    }
+    return () => { if (timer) clearTimeout(timer) }
+  }, [local, mode, view, botSeats, presentation.presenting, gameOver])
 
   const send: SendCommand = (command, actorOverride) => {
     if (presentation.presenting) return
@@ -142,7 +179,21 @@ function App() {
   const commitSetup = () => {
     const issue = validateRoster(names)
     if (issue) { setError(issue); return }
+    clearPracticeSeats()
+    setBotSeats(null)
     clearLocalSession(); setLocalTableId(id => id + 1); setLocal(createSession(1847, names, characters)); setDialog(null); setView('game'); setMode('local'); setZoom(1); setError(null)
+  }
+  const commitPractice = () => {
+    const humanName = names[0]?.trim() || 'Avery Vale'
+    const botNames = ['Briar Holt', 'Cato Reed', 'Nia Sable', 'Quinn Marsh', 'Rose Ferro'].filter(name => name !== humanName).slice(0, 3)
+    const issue = validateRoster([humanName, ...botNames])
+    if (issue) { setError(issue); return }
+    clearLocalSession()
+    savePracticeSeats(['player-2', 'player-3', 'player-4'])
+    setLocalTableId(id => id + 1)
+    setLocal(createSession(1847, [humanName, ...botNames], [characters[0] ?? 0, 1, 2, 3]))
+    setBotSeats(['player-2', 'player-3', 'player-4'])
+    setDialog(null); setView('game'); setMode('local'); setZoom(1); setError(null)
   }
   const addSeat = () => {
     const issue = validateRoster([...names, newName.trim()])
@@ -162,7 +213,7 @@ function App() {
     if (file.size > 1_000_000) { setError('Save file exceeds 1 MB.'); return }
     const result = importLocalSession(await file.text())
     if (!result.session) { setError(result.error ?? 'Invalid save.'); return }
-    online.leave(); clearLocalSession(); setLocalTableId(id => id + 1); setMode('local'); setLocal(result.session); setView('game'); setDialog(result.session.pendingId ? 'landing' : null); setError(null)
+    online.leave(); clearLocalSession(); clearPracticeSeats(); setBotSeats(null); setLocalTableId(id => id + 1); setMode('local'); setLocal(result.session); setView('game'); setDialog(result.session.pendingId ? 'landing' : null); setError(null)
   }
   const manualZoom = (value: number) => { preferences.setPreference('follow', false); setZoom(Math.max(1, Math.min(12, value))) }
   const actions = (deed: Property) => {
@@ -194,7 +245,7 @@ function App() {
       {mode === 'online' && <div className="connection-banner" role="status">Room {online.room?.code ?? '—'} · You are {online.room?.seats.find(s => s.id === online.playerId)?.name ?? 'connecting'}<span className="connection-state">{statusLabel(online.status)}<span className="connection-token"> · {online.status}</span></span>{waitingLabel && <span className="seat-waiting">{waitingLabel}</span>}<button onClick={online.retry}>{online.status === 'connected' ? 'Refresh room state' : 'Reconnect'}</button>{online.error && <span role="alert">{online.error}</span>}</div>}
       <div className="game-layout">
         <aside className="player-rail"><div className="rail-heading"><div><p className="eyebrow">The table</p><h2>{players.length} seats live</h2></div><button className="add-seat" onClick={openSetup} disabled={mode === 'local' && game.turn > 0} title={game.turn ? 'Seats lock after the first roll' : 'Add a player'} aria-label="Add a player">+</button></div>
-          <div className="roster">{players.map((p, index) => <div className={`player-row ${p.id === actor.id ? 'active' : ''} ${p.status === 'bankrupt' ? 'bankrupt' : ''}`} key={p.id}><Character index={p.character ?? index % 6} className="gameplay-avatar" /><span className="player-details"><strong>{p.name}{mode === 'online' && p.id === selfId ? ' · you' : ''}</strong><small>{p.status === 'bankrupt' ? 'Bankrupt' : p.id === actor.id ? 'At the desk' : `Space ${p.position + 1}`}{mode === 'online' && !online.room?.seats.find(s => s.id === p.id)?.connected ? ' · offline' : ''}</small></span><span className="player-cash">{cr(p.cash)}</span></div>)}</div>
+          <div className="roster">{players.map((p, index) => <div className={`player-row ${p.id === actor.id ? 'active' : ''} ${p.status === 'bankrupt' ? 'bankrupt' : ''}`} key={p.id}><Character index={p.character ?? index % 6} className="gameplay-avatar" /><span className="player-details"><strong>{p.name}{isBotSeat(p.id) ? ' (AI)' : ''}{mode === 'online' && p.id === selfId ? ' · you' : ''}</strong><small>{p.status === 'bankrupt' ? 'Bankrupt' : p.id === actor.id ? 'At the desk' : `Space ${p.position + 1}`}{mode === 'online' && !online.room?.seats.find(s => s.id === p.id)?.connected ? ' · offline' : ''}</small></span><span className="player-cash">{cr(p.cash)}</span></div>)}</div>
           <p className="save-indicator">{mode === 'local' ? saveError ? 'Save needs attention' : '✓ Saved on this browser' : '✓ Server-saved room'}</p>
           <button className="rail-link" onClick={() => setDialog('profile')}>Profile, audio & saves ↗</button>
         </aside>
@@ -204,11 +255,11 @@ function App() {
           <div className="presentation-toolbar"><button aria-pressed={preferences.follow} onClick={() => preferences.setPreference('follow', !preferences.follow)}>Camera follow {preferences.follow ? 'on' : 'off'}</button><button onClick={() => setFocusRequest(value => value + 1)}>Return to active player ↗</button><button aria-pressed={preferences.fast} onClick={() => preferences.setPreference('fast', !preferences.fast)}>Fast resolution {preferences.fast ? 'on' : 'off'}</button></div>
           <div className="exchange-shortcuts"><button onClick={() => { setExchangeTab('Factories'); setDialog('exchange') }}>▥ Factories</button><button onClick={() => { setExchangeTab('Bank'); setDialog('exchange') }}>◇ City Bank</button><button onClick={() => { setExchangeTab('Auctions'); setDialog(auction ? 'landing' : 'exchange') }}>⚑ Auctions{auction ? ' · LIVE' : ''}</button><button onClick={() => { setExchangeTab('Deals'); setDialog('exchange') }}>↔ Negotiations{session.economy.offers.some(o => o.status === 'open') ? ' · NEW' : ''}</button></div>
         </section>
-        <aside className="command-panel"><div className="command-heading"><p className="eyebrow">Current desk</p><h2>{actor.name}</h2><span>Space {actor.position + 1}{!myTurn ? ' · Waiting for their move' : ''}</span></div><div className="balance-block"><span>Available balance</span><strong>{cr(actor.cash)}</strong></div>
-          <div className="turn-action"><p role="status">{winner ? `${winner.name} wins the table!` : presentation.phase === 'rolling' ? 'The dice are on the table…' : presentation.phase === 'moving' ? `Following the route · ${session.lastRoll?.total} stops` : presentation.phase === 'syncing' ? 'Synchronizing the table…' : actorWaiting ? `Waiting for ${actor.name} — seat reserved while they reconnect.` : pending ? auction ? 'Auction live · bid or fold to continue.' : session.landingOffer ? 'Choose whether to acquire the deed or open bidding.' : 'Landing settled · manage assets or end turn.' : `${actor.name} is at the desk. Roll when ready.`}</p>{session.lastRoll && <div className="dice-result"><DiceTray first={session.lastRoll.first} second={session.lastRoll.second} rolling={presentation.phase === 'rolling'} reducedMotion={presentation.snapped} /></div>}
+        <aside className="command-panel"><div className="command-heading"><p className="eyebrow">Current desk</p><h2>{actor.name}{isBotSeat(actor.id) ? ' (AI)' : ''}</h2><span>Space {actor.position + 1}{!myTurn ? ' · Waiting for their move' : ''}</span></div><div className="balance-block"><span>Available balance</span><strong>{cr(actor.cash)}</strong></div>
+          <div className="turn-action"><p role="status">{winner ? `${winner.name} wins the table!` : presentation.phase === 'rolling' ? 'The dice are on the table…' : presentation.phase === 'moving' ? `Following the route · ${session.lastRoll?.total} stops` : presentation.phase === 'syncing' ? 'Synchronizing the table…' : actorWaiting ? `Waiting for ${actor.name} — seat reserved while they reconnect.` : session.pendingId && isBotSeat(session.pendingId) && !auction ? `${game.players[session.pendingId].name} (AI) is resolving their landing automatically.` : pending ? auction ? 'Auction live · bid or fold to continue.' : session.landingOffer ? 'Choose whether to acquire the deed or open bidding.' : 'Landing settled · manage assets or end turn.' : mode === 'local' && !myTurn ? `${actor.name} (AI) takes their turns by themselves — the desk returns to you soon.` : `${actor.name} is at the desk. Roll when ready.`}</p>{session.lastRoll && <div className="dice-result"><DiceTray first={session.lastRoll.first} second={session.lastRoll.second} rolling={presentation.phase === 'rolling'} reducedMotion={presentation.snapped} /></div>}
             {presentation.presenting && <button className="outline-button" onClick={presentation.skip}>Skip animation →</button>}
             <button className="roll-button" disabled={!!pending || busy || !myTurn || !!winner || !!dialog || (mode === 'online' && !online.room?.started)} onClick={() => send({ type: 'roll' })}>Roll the dice ↗</button>
-            {pending && !presentation.presenting && <button className="text-button" onClick={() => setDialog('landing')}>{auction ? 'Open live auction' : 'Resolve landing'} ↗</button>}
+            {pending && !presentation.presenting && (auction || !isBotSeat(session.pendingId)) && <button className="text-button" onClick={() => setDialog('landing')}>{auction ? 'Open live auction' : 'Resolve landing'} ↗</button>}
           </div>
           {preferences.dialogue && !presentation.presenting && presentation.dialogue && <CityCommentary line={presentation.dialogue} speech={preferences.speech && audio.enabled} dismiss={presentation.dismissDialogue} />}
           <div className="inspector"><p className="eyebrow">Selected asset</p><h3>{space.name}</h3>{property ? <><p>{game.districts.find(d => d.id === property.districtId)?.name} · {property.mortgaged ? 'Mortgaged' : `Level ${property.development}`}</p><div className="inspector-stats"><div>Price<strong>{cr(property.price)}</strong></div><div>Rent<strong>{cr(rentFor(game, property))}</strong></div><div>Mortgage<strong>{cr(property.mortgage)}</strong></div></div><p>Owner: {property.ownerId ? game.players[property.ownerId]?.name : 'Bank'}</p>{property.ownerId === selfId && <button className="outline-button" onClick={() => { setConfirmSale(false); setDialog('manage') }}>Manage deed ↗</button>}</> : <p>Public space · {space.kind === 'special' ? space.specialKind : ''}</p>}</div>
@@ -231,8 +282,9 @@ function App() {
       <div className="gameplay-roster-edit">{names.map((name, index) => <div key={index}><Character index={characters[index]} className="gameplay-avatar" /><input aria-label={`Player ${index + 1} name`} value={name} maxLength={30} onChange={e => setNames(list => list.map((n, i) => i === index ? e.target.value : n))} /><select aria-label={`Player ${index + 1} character`} value={characters[index]} onChange={e => setCharacters(list => list.map((n, i) => i === index ? Number(e.target.value) : n))}>{CHARACTER_NAMES.map((label, i) => <option value={i} key={label}>{label}</option>)}</select><button disabled={names.length <= 2} onClick={() => { setNames(list => list.filter((_, i) => i !== index)); setCharacters(list => list.filter((_, i) => i !== index)) }}>Remove</button></div>)}</div>
       <div className="gameplay-add"><input aria-label="New player name" placeholder="New player name" maxLength={30} value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') addSeat() }} /><select aria-label="New player character" value={newCharacter} onChange={e => setNewCharacter(Number(e.target.value))}>{CHARACTER_NAMES.map((label, i) => <option value={i} key={label}>{label}</option>)}</select><button disabled={names.length >= 20} onClick={addSeat}>Add player</button></div>
       <button className="primary-button modal-submit" onClick={commitSetup}>Enter the city →</button>
+      <button className="outline-button modal-submit" onClick={commitPractice}>Practice vs 3 traders ↗</button>
     </DialogFrame>}
-    {dialog === 'restart' && <DialogFrame title="Start a fresh table?" close={() => setDialog(null)}><p>This replaces your current local save. Export it from your profile first if you want to keep it.</p><div className="landing-choices"><button className="primary-button" onClick={() => { clearLocalSession(); setLocal(createSession(1847, defaults)); setNames(defaults); setCharacters([0, 1, 2, 3]); setDialog('setup'); setError(null); setConfirmSale(false) }}>Start new table</button><button className="outline-button" onClick={() => setDialog(null)}>Keep playing</button></div></DialogFrame>}
+    {dialog === 'restart' && <DialogFrame title="Start a fresh table?" close={() => setDialog(null)}><p>This replaces your current local save. Export it from your profile first if you want to keep it.</p><div className="landing-choices"><button className="primary-button" onClick={() => { clearLocalSession(); clearPracticeSeats(); setBotSeats(null); setLocal(createSession(1847, defaults)); setNames(defaults); setCharacters([0, 1, 2, 3]); setDialog('setup'); setError(null); setConfirmSale(false) }}>Start new table</button><button className="outline-button" onClick={() => setDialog(null)}>Keep playing</button></div></DialogFrame>}
     {dialog === 'profile' && <DialogFrame title="Local table profile" close={() => setDialog(null)}>
       <Character index={self.character} className="profile-character" /><p>{self.name} · {cr(self.cash)} · {self.properties.length} deeds · {self.turns} turns</p>
       <AudioControls audio={audio} /><button className="outline-button" disabled={!audio.enabled} onClick={() => { void audio.unlock().then(() => audio.play('purchase')) }}>Play sound preview</button>
@@ -245,6 +297,7 @@ function App() {
     {dialog === 'exchange' && <DialogFrame title="The city exchange" close={() => setDialog(pending ? 'landing' : null)} wide><EconomyDesk session={session} playerId={selfId} online={mode === 'online'} busy={busy} send={send} initialTab={exchangeTab} /><button className="outline-button exchange-back" onClick={() => setDialog(pending ? 'landing' : null)}>{pending ? 'Back to landing' : 'Back to table'} ↗</button></DialogFrame>}
     {dialog === 'manage' && property && <DialogFrame title={`Manage ${property.name}`} close={() => setDialog(pending ? 'landing' : null)}><p>{cr(self.cash)} available · {property.mortgaged ? 'Mortgaged' : `Level ${property.development}`}</p>{property.ownerId === actor.id && myTurn ? actions(property) : <p>This deed belongs to {game.players[property.ownerId ?? '']?.name ?? 'the bank'}. Only the active owner can manage it.</p>}</DialogFrame>}
     {dialog === 'landing' && pending && !presentation.presenting && <DialogFrame title={auction ? 'Going once. Going twice.' : pending.name} close={() => setDialog(null)} locked={myTurn} wide={!!auction}>
+      {isBotSeat(session.pendingId) && !auction ? <p className="modal-footnote">{game.players[session.pendingId!].name} is an automated seat and resolves this landing by themself.</p> : <>
       {auction ? <AuctionPanel session={session} playerId={selfId} online={mode === 'online'} busy={busy} send={send} /> : <>
         <div className="landing-card-art"><DeedArtwork index={Math.floor(pending.space / 8)} special={pending.kind === 'special'} /><Character dealer className="dealer-portrait" /><span className="deed-ribbon">{pending.kind === 'property' ? 'TITLE DEED' : 'CITY STOP'} / {String(pending.space + 1).padStart(3, '0')}</span></div>
         <div className="gameplay-dealer"><span>THE DEALER SAYS</span><strong>{pending.kind === 'property' ? pending.ownerId === actor.id ? 'A fine addition to your empire.' : pending.ownerId ? 'Every address has its price.' : 'A little corner of the city. Yours?' : 'The city keeps its own rhythm.'}</strong></div>
@@ -259,6 +312,7 @@ function App() {
         <details className="landing-receipts"><summary>View transaction receipts</summary>{session.receipts.filter(r => r.turn === game.turn && r.kind !== 'roll').map(r => <p key={r.id} className="gameplay-receipt">{r.kind}: {r.kind === 'production' ? `${r.amount} goods` : cr(r.amount)} · {r.note}</p>)}</details>
         {myTurn && !session.landingOffer && <button className="primary-button modal-submit" disabled={busy} onClick={() => send({ type: 'finish' })}>End turn →</button>}
         {!myTurn && <p className="modal-footnote">Waiting for {actor.name} to resolve this landing. Your seat cannot make their decisions.</p>}
+      </>}
       </>}
     </DialogFrame>}
   </div>
