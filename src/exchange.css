@@ -5,6 +5,8 @@
 .connection-banner { background: #204e4c; color: #f5ecd2; padding: 9px 22px; font-size: .75rem; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
 .connection-banner button { background: #f3e5c6; border: 1px solid #d7ad70; color: #183d3e; }
 .connection-banner .connection-state { border: 1px solid #d7ad70; border-radius: 999px; padding: 1px 10px; font-weight: 600; }
+/* The raw status token stays in the chip's accessible text but is not shown twice. */
+.connection-banner .connection-state .connection-token { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .connection-banner .seat-waiting { color: #f7dfae; }
 .save-indicator { font-size: .63rem; color: #afcfbd; margin-top: 16px; }
 .exchange-shortcuts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 22px; }
