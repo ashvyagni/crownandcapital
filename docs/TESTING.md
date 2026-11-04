@@ -4,11 +4,11 @@
 
 | Command | Result | Scope |
 |---|---|---|
-| `npm run lint` | PASS | Frontend and server TypeScript (rerun 2026-10-26) |
-| `npm test` | PASS | 7 Vitest files / 41 tests (rerun 2026-11-04) |
-| `npm run test:server` | PASS | 2 real WebSocket integration tests (rerun 2026-10-26) |
-| `npm run test:e2e` | PASS | 32 Chromium tests, one worker; run 2026-10-26: `32 passed (2.4m)` |
-| `npm run build` | PASS | ~309 kB initial app JS; deferred ~1.21 MB board JS, uncompressed |
+| `npm run lint` | PASS | Frontend and server TypeScript (rerun 2026-11-04) |
+| `npm test` | PASS | 8 Vitest files / 43 tests (rerun 2026-11-04) |
+| `npm run test:server` | PASS | 2 real WebSocket integration tests (rerun 2026-11-04) |
+| `npm run test:e2e` | PASS | 35 Chromium tests, one worker; run 2026-11-04: `35 passed (1.9m)` |
+| `npm run build` | PASS | 328.18 kB initial app JS (gzip 101.5 kB); deferred 1,211.63 kB board JS, uncompressed (measured 2026-11-04) |
 | Targeted visual browser rerun | PASS | Desktop home/board/deed and mobile home/bank after the final paper-card animation refinement |
 | Running Node service | PASS | `/health` returns `{"ok":true}` and built `/` returns HTTP 200 on port 2567 |
 
@@ -16,7 +16,7 @@ Vite still reports its deferred Phaser chunk size advisory. This is not a claim 
 
 ## Rules, economy and persistence tests
 
-The suite covers 144 unique contiguous perimeter coordinates and loop closure; 18 districts / 90 deeds / one Civic Gate; seeded dice and salary; deed purchase, development, rent, mortgages and exact redemption arithmetic; liquidation and bankruptcy basics; validated 2–20-seat setup; immutable session transitions and duplicate IDs; rejected malformed/unsafe values; local save/read/backup/quota behaviour; factory inventory and ownership; one production cycle across before/after-roll actions; dismantling; single-pledge collateral and partial/final repayment; auction minimums, folding, no-bid close and once-only settlement; recipient-only offer acceptance and atomic revalidation; and the deterministic difficulty-1 bot engine (`src/game/bot.ts`): replay determinism, legality/purity sweeps across seeds and 2–4 seats, bot-vs-bot completion within 1,000 turns / 4,000 commands on three fixed seeds (29, 48, 12), and a 50-seed no-throw/no-deadlock sweep. Bot completion is a heuristic throughput check, not a balance guarantee.
+The suite covers 144 unique contiguous perimeter coordinates and loop closure; 18 districts / 90 deeds / one Civic Gate; seeded dice and salary; deed purchase, development, rent, mortgages and exact redemption arithmetic; liquidation and bankruptcy basics; validated 2–20-seat setup; immutable session transitions and duplicate IDs; rejected malformed/unsafe values; local save/read/backup/quota behaviour; factory inventory and ownership; one production cycle across before/after-roll actions; dismantling; single-pledge collateral and partial/final repayment; auction minimums, folding, no-bid close and once-only settlement; recipient-only offer acceptance and atomic revalidation; and the deterministic difficulty-1 bot engine (`src/game/bot.ts`): replay determinism, legality/purity sweeps across seeds and 2–4 seats, bot-vs-bot completion within 1,000 turns / 4,000 commands on three fixed seeds (29, 48, 24 — seed 12 was replaced by 24 in 2026-11-04's `80e13b9` redeem-policy recalibration; observed per-seed counts are recorded as a comment in `bot.test.ts`), and a 50-seed no-throw/no-deadlock sweep. Bot completion is a heuristic throughput check, not a balance guarantee.
 
 No balance simulation is inferred from passing unit tests.
 
@@ -29,7 +29,7 @@ These are not twenty graphical browsers, a stress test, a public deployment, or 
 
 ## Browser tests
 
-The 32 tests exercise the existing local table/roster, acquisition, mortgage/redemption, confirmed bank sales, free pass, readable street directory, actual rent, fresh-table confirmation and keyboard/mobile reachability; then verify reload during an unfinished purchase and after acquisition; collateral and partial repayment; stocked factory production/sales and reload; hotseat auction settlement; bilateral acceptance and balances; opt-in generated audio/volume persistence; two isolated browser contexts creating/joining/starting and reclaiming a pending turn on reload; a dropped room socket that shows waiting/reconnecting seat indicators on both clients before the same turn resumes; an abrupt mid-turn reload that reclaims the seat and returns the desk; a departed creator leaving a reserved, still-joinable room; shareable invite links that prefill the join flow, recover from an unknown code, and — after dismissing a valid invite or a missing room's server error — return to local play without reopening the online lobby; and desktop/mobile composition plus reduced-motion fallback.
+The 35 tests exercise the existing local table/roster, acquisition, mortgage/redemption, confirmed bank sales, free pass, readable street directory, actual rent, fresh-table confirmation and keyboard/mobile reachability; then verify reload during an unfinished purchase and after acquisition; collateral and partial repayment; stocked factory production/sales and reload; hotseat auction settlement; bilateral acceptance and balances; opt-in generated audio/volume persistence; two isolated browser contexts creating/joining/starting and reclaiming a pending turn on reload; a dropped room socket that shows waiting/reconnecting seat indicators on both clients before the same turn resumes; an abrupt mid-turn reload that reclaims the seat and returns the desk; a departed creator leaving a reserved, still-joinable room; shareable invite links that prefill the join flow, recover from an unknown code, and — after dismissing a valid invite or a missing room's server error — return to local play without reopening the online lobby; the local practice entry seeding a labeled bot table where a bot completes a full turn solo, acts unprompted on the next desk, and re-derives its seats from the saved config after a reload; and desktop/mobile composition plus reduced-motion fallback.
 
 Audio instrumentation confirms oscillators are created after an opt-in gesture and remain absent before opt-in. It is not a human listening/volume-quality review.
 
