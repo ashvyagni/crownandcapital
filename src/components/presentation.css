@@ -1,5 +1,5 @@
 .presentation-toolbar { display:flex; flex-wrap:wrap; gap:7px; padding:10px 0 4px; }
-.presentation-toolbar button { border:1px solid #738f83; border-radius:20px; padding:8px 12px; background:#f6efdf; color:#204443; font:600 11px/1.3 'DM Sans',sans-serif; cursor:pointer; }
+.presentation-toolbar button { border:1px solid #738f83; border-radius:20px; padding:8px 12px; background:#f6efdf; color:#204443; font:600 12px/1.3 'DM Sans',sans-serif; cursor:pointer; }
 .presentation-toolbar button[aria-pressed="true"] { background:#244c47; color:#fff5dc; }
 .presentation-toolbar button:focus-visible { outline:3px solid #b3694a; outline-offset:3px; }
 .presentation-preferences { margin:20px 0; padding:16px; border:1px solid #a4ac96; border-radius:12px; display:grid; gap:12px; }
@@ -10,14 +10,14 @@
 .city-commentary__portrait { height:85px; overflow:hidden; }
 .city-commentary__portrait svg { width:63px; height:105px; transform:translateX(-5px); }
 .city-commentary p { margin:0 0 6px; font-size:12px; line-height:1.6; }
-.city-commentary .eyebrow { color:#8d4e35; font-size:9px; letter-spacing:1.5px; }
+.city-commentary .eyebrow { color:#8d4e35; font-size:12px; letter-spacing:1.5px; }
 .city-commentary > button { position:absolute; right:4px; top:5px; background:none; border:0; color:#244c47; cursor:pointer; font-size:20px; padding:2px 5px; }
 .turn-action .dice-tray { --dice-size:54px; color:#f6efdf; max-width:100%; }
 .turn-action .dice-tray__pair { padding:18px 8px 8px; gap:20px; }
 .turn-action .dice-tray__face { border-radius:10px; padding:7px; }
 .turn-action .dice-tray__pip { width:8px; height:8px; }
-.turn-action .dice-tray__result { font-size:11px; }
-@media (max-width:700px) { .presentation-toolbar button { padding:10px; font-size:10px; } }
+.turn-action .dice-tray__result { font-size:12px; }
+@media (max-width:700px) { .presentation-toolbar button { padding:10px; font-size:12px; } }
 @media (max-width:600px) {
   .turn-action:has(> .outline-button) { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:center; }
   .turn-action:has(> .outline-button) > p { display:block; grid-column:1 / -1; margin:0; font-size:12px; }

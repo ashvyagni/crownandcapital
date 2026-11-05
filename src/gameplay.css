@@ -26,23 +26,23 @@
 .gameplay-roster-edit input, .gameplay-add input { min-width: 0; margin: 0; }
 .gameplay-roster-edit button, .gameplay-add button {
   background: var(--navy); color: var(--cream); border: 2px solid var(--navy);
-  padding: 8px; font-size: .72rem; font-weight: 700;
+  padding: 8px; font-size: var(--t-12); font-weight: 700;
 }
 .gameplay-add { grid-template-columns: minmax(0, 1fr) 110px 85px; padding: 15px 0; }
 .gameplay-dialog [role='alert'] { color: #9b3022; font-weight: 700; }
 .gameplay-dealer { display: flex; flex-direction: column; gap: 5px; padding: 14px 0 10px; }
-.gameplay-dealer > span { font-size: .62rem; font-weight: 800; letter-spacing: .12em; color: #8e382b; }
+.gameplay-dealer > span { font-size: var(--t-12); font-weight: 800; letter-spacing: .12em; color: #8e382b; }
 .gameplay-dealer > strong { font-size: .94rem; }
 .landing-card-art { height: 146px; position: relative; margin-top: 8px; border: 2px solid var(--navy); background: #dbe5cd; }
 .landing-card-art > svg:first-child { width: 100%; height: 100%; object-fit: cover; }
 .dealer-portrait { position: absolute; height: 168px; width: 116px; right: 0; bottom: -3px; filter: drop-shadow(-5px 2px 0 #172d3d22); }
-.deed-ribbon { position: absolute; top: 8px; left: 8px; background: var(--navy); color: var(--cream); padding: 7px 10px; font-size: .63rem; letter-spacing: .09em; font-weight: 800; }
+.deed-ribbon { position: absolute; top: 8px; left: 8px; background: var(--navy); color: var(--cream); padding: 7px 10px; font-size: var(--t-12); letter-spacing: .09em; font-weight: 800; }
 .landing-actor { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; font-size: .82rem; margin-bottom: 14px; }
 .inspector-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 15px 0; }
-.inspector-stats > div { font-size: .68rem; text-transform: uppercase; letter-spacing: .03em; padding: 9px; border: 1px solid #a6b3ac; }
+.inspector-stats > div { font-size: var(--t-12); text-transform: uppercase; letter-spacing: .03em; padding: 9px; border: 1px solid #a6b3ac; }
 .inspector-stats strong { display: block; font-size: 1rem; letter-spacing: 0; margin-top: 4px; }
 .command-panel .inspector-stats strong { color: var(--gold); }
-.ownership-label { font-size: .74rem; color: #43594d; }
+.ownership-label { font-size: var(--t-12); color: #43594d; }
 .ownership-success { padding: 10px; border: 2px solid #417b62; background: #d9ead0; color: #244f39; font-size: .84rem; font-weight: 700; }
 .landing-choices { display: flex; flex-wrap: wrap; gap: 14px; margin: 20px 0 10px; }
 .landing-choices .primary-button { flex: 1; }
@@ -50,23 +50,23 @@
 .gameplay-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin: 15px 0; }
 .gameplay-actions > button { background: var(--cream); border: 2px solid var(--navy); padding: 11px 8px; color: var(--navy); font-size: .8rem; font-weight: 800; }
 .gameplay-actions > button:hover:not(:disabled) { background: var(--mint); }
-.gameplay-actions small { grid-column: 1 / -1; font-size: .69rem; line-height: 1.5; color: #40554a; }
+.gameplay-actions small { grid-column: 1 / -1; font-size: var(--t-12); line-height: 1.5; color: #40554a; }
 .sale-confirm { grid-column: 1 / -1; padding: 15px; border: 2px solid var(--red); background: #ffe1c6; }
 .sale-confirm strong { font-size: .9rem; }
 .sale-confirm p { font-size: .78rem; }
 .sale-confirm button { margin: 0 10px 5px 0; background: var(--navy); color: var(--cream); padding: 8px 12px; border: 2px solid var(--navy); }
-.landing-receipts { font-size: .74rem; margin: 14px 0; border-top: 1px solid #a5b4a7; padding-top: 12px; }
+.landing-receipts { font-size: var(--t-12); margin: 14px 0; border-top: 1px solid #a5b4a7; padding-top: 12px; }
 .landing-receipts summary { cursor: pointer; font-weight: 800; }
-.gameplay-receipt { padding-top: 6px; margin-bottom: 0; font-size: .72rem; }
+.gameplay-receipt { padding-top: 6px; margin-bottom: 0; font-size: var(--t-12); }
 .special-outcome { padding: 15px; background: #dbe5cd; border: 2px solid var(--navy); }
 .portfolio { margin-bottom: 25px; }
 .portfolio > button { display: block; width: 100%; text-align: left; background: #294655; border: 1px solid #749088; color: var(--cream); margin: 7px 0; padding: 10px; font-size: .76rem; }
-.portfolio > button > span { display: block; color: var(--mint); font-size: .68rem; margin-top: 4px; }
-.portfolio > small { color: #c0d0ca; font-size: .74rem; }
+.portfolio > button > span { display: block; color: var(--mint); font-size: var(--t-12); margin-top: 4px; }
+.portfolio > small { color: #c0d0ca; font-size: var(--t-12); }
 .portfolio .eyebrow, .ledger-preview .eyebrow { color: var(--mint); }
-.ledger-entry { display: flex; align-items: center; gap: 8px; justify-content: space-between; font-size: .71rem; padding: 10px 0; border-top: 1px solid #48606a; }
+.ledger-entry { display: flex; align-items: center; gap: 8px; justify-content: space-between; font-size: var(--t-12); padding: 10px 0; border-top: 1px solid #48606a; }
 .ledger-entry strong { color: var(--gold); white-space: nowrap; }
-.ledger-entry small { display: block; text-transform: uppercase; font-size: .58rem; color: var(--mint); margin-bottom: 4px; }
+.ledger-entry small { display: block; text-transform: uppercase; font-size: var(--t-12); color: var(--mint); margin-bottom: 4px; }
 .city-map-shell { position: absolute; inset: 0; }
 .board-loading { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: var(--navy); }
 .board-loading strong { font: 900 2rem 'Barlow Condensed', sans-serif; }
@@ -77,12 +77,12 @@
 .map-directory[open] { background: var(--cream); border: 2px solid var(--navy); box-shadow: 4px 4px 0 var(--navy); }
 .map-directory[open] > summary { border: 0; box-shadow: none; }
 .map-directory-content { padding: 0 12px 12px; }
-.map-directory-content label { display: block; font-size: .68rem; font-weight: 700; }
+.map-directory-content label { display: block; font-size: var(--t-12); font-weight: 700; }
 .map-directory-content input { width: 100%; padding: 10px; margin: 7px 0 10px; border: 2px solid var(--navy); background: #fff; }
-.map-directory-list button { display: block; width: 100%; padding: 9px 5px; background: transparent; border: 0; border-top: 1px solid #acb9ad; text-align: left; color: var(--navy); font-size: .74rem; }
+.map-directory-list button { display: block; width: 100%; padding: 9px 5px; background: transparent; border: 0; border-top: 1px solid #acb9ad; text-align: left; color: var(--navy); font-size: var(--t-12); }
 .map-directory-list button:hover { background: #d9ead0; }
-.map-directory-list button strong { display: block; font-size: .65rem; margin-top: 4px; color: #3b674e; }
-.map-hint { position: absolute; left: 10px; right: 10px; top: 10px; pointer-events: none; color: var(--navy); font-size: .65rem; font-weight: 800; display: flex; justify-content: space-between; gap: 8px; }
+.map-directory-list button strong { display: block; font-size: var(--t-12); margin-top: 4px; color: #3b674e; }
+.map-hint { position: absolute; left: 10px; right: 10px; top: 10px; pointer-events: none; color: var(--navy); font-size: var(--t-12); font-weight: 800; display: flex; justify-content: space-between; gap: 8px; }
 @keyframes deal-card { from { transform: translateY(14px) rotate(-.5deg); } to { transform: none; } }
 @media (max-width: 600px) {
   /* The fixed action bar now carries the turn guidance too, so page content and
@@ -101,9 +101,9 @@
   .gameplay-add { grid-template-columns: minmax(0, 1fr) 90px; }
   .gameplay-add input { grid-column: 1 / -1; }
   .gameplay-add select { max-width: 100%; }
-  .map-hint { font-size: .55rem; }
+  .map-hint { font-size: var(--t-12); }
   .map-hint span { display: none; }
-  .gameplay-actions > button { font-size: .7rem; }
+  .gameplay-actions > button { font-size: var(--t-12); }
   .landing-card-art { height: 115px; }
   .dealer-portrait { height: 140px; width: 97px; }
   .gameplay-dialog > h2 { padding-right: 10px; }
