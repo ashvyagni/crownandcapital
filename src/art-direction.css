@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght,SOFT,WONK@9..144,600,0,0;9..144,700,0,0;9..144,800,0,0&display=swap');
 
-:root { --navy:#11353b; --deep:#092c32; --paper:#eee8d5; --cream:#faf3df; --red:#a95d43; --mint:#a8cbbb; --gold:#d7ad70; --border:#99a59b; --text:#193d40; --brass:#d7ad70; --ember:#a95d43; --success:#a8cbbb; --blue:#a8cbbb; }
 body { background:#e9e6d5; }
 .app-shell { position:relative; isolation:isolate; }
 .app-shell > .landing-page, .app-shell > .game-page { position:relative; z-index:1; }
@@ -15,8 +14,8 @@ body { background:#e9e6d5; }
 @keyframes trader-breathe { 50% { transform:translateY(-3px) rotate(.5deg); } }
 
 .landing-page { background:#e9e6d5; color:#14373a; }
-.landing-page .eyebrow { color:#8e5b43; font-size:.68rem; letter-spacing:.2em; }
-[data-reveal] { transition:opacity .55s ease,transform .55s ease; }
+.landing-page .eyebrow { color:#8e5b43; font-size:var(--t-12); letter-spacing:.2em; }
+[data-reveal] { transition: opacity var(--motion-slow), transform var(--motion-slow); }
 @media (prefers-reduced-motion:no-preference) { .landing-page:has(.is-revealed) [data-reveal]:not(.is-revealed) { opacity:.68; transform:translateY(12px); } }
 .landing-page .site-nav { max-width:none; height:78px; border-bottom:1px solid #698980; padding-inline:clamp(20px,4vw,76px); background:#e9e6d5; }
 .brand-lockup { font-family:'Fraunces',Georgia,serif; font-weight:800; letter-spacing:-.035em; }
@@ -25,7 +24,7 @@ body { background:#e9e6d5; }
 .brand-mark span { color:#eac58f; }
 .site-nav nav a { font-weight:600; }
 .quiet-button { font-weight:600; }
-.outline-button,.primary-button,.roll-button { border:1px solid #153e40; box-shadow:3px 3px 0 #143c40; border-radius:2px; padding:13px 19px; transition:transform .18s ease,box-shadow .18s ease,background .18s ease; }
+.outline-button,.primary-button,.roll-button { border:1px solid #153e40; box-shadow:3px 3px 0 #143c40; border-radius:2px; padding:13px 19px; transition: transform var(--motion-base), box-shadow var(--motion-base), background var(--motion-base); }
 .outline-button:hover,.primary-button:hover,.roll-button:hover:not(:disabled) { transform:translate(-1px,-1px); box-shadow:4px 4px 0 #143c40; }
 .outline-button:active,.primary-button:active,.roll-button:active:not(:disabled) { transform:translate(2px,2px); box-shadow:1px 1px 0 #143c40; }
 .primary-button,.roll-button { background:var(--action); color:#fff8e8; }
@@ -44,7 +43,7 @@ button:disabled { background-color:var(--disabled-bg); color:var(--disabled-fg);
 .hero-lede { font-size:.97rem; font-weight:500; color:#365c59; line-height:1.7; max-width:420px; margin-bottom:27px; }
 .hero-actions { gap:13px; flex-wrap:wrap; }
 .hero-cta { font:700 1rem 'DM Sans',sans-serif; text-transform:none; letter-spacing:0; padding:16px 25px; }
-.hero-footnote { font-size:.58rem; font-weight:700; letter-spacing:.12em; color:#5a7770; line-height:2; }
+.hero-footnote { font-size:var(--t-12); font-weight:700; letter-spacing:.12em; color:#5a7770; line-height:2; }
 .hero-footnote b { color:#ab694e; padding:0 8px; }
 .hero-art { min-height:610px; height:min(51vw,750px); margin-left:-7%; isolation:isolate; }
 .city-world { position:absolute; width:min(110%,840px); height:100%; inset:0 0 0 auto; overflow:visible; filter:drop-shadow(0 25px 20px #103b3a25); animation:city-drift 24s ease-in-out infinite; }
@@ -52,19 +51,19 @@ button:disabled { background-color:var(--disabled-bg); color:var(--disabled-fg);
 .hero-orbit { position:absolute; width:78%; aspect-ratio:1; border:1px solid #89a9a0; border-radius:50%; left:19%; top:9%; pointer-events:none; opacity:.5; }
 .orbit-two { width:94%; left:11%; top:1%; border-style:dashed; opacity:.28; }
 .world-label,.world-stamp,.world-banknote,.art-caption { position:absolute; z-index:2; pointer-events:none; }
-.world-label { background:#f5efdb; border:1px solid #31585a; box-shadow:2px 3px 0 #173d3b; color:#21474a; font-size:.58rem; font-weight:800; letter-spacing:.15em; padding:9px 12px; }
+.world-label { background:#f5efdb; border:1px solid #31585a; box-shadow:2px 3px 0 #173d3b; color:#21474a; font-size:var(--t-12); font-weight:800; letter-spacing:.15em; padding:9px 12px; }
 .world-label span { color:#a45c43; }
 .world-label-north { top:18%; right:0; transform:rotate(4deg); }
 .world-label-south { bottom:16%; left:17%; transform:rotate(-4deg); }
 .world-banknote { width:134px; height:77px; top:8%; left:18%; background:#b9c8ab; border:2px double #1c5551; outline:4px solid #b9c8ab; transform:rotate(-12deg); color:#164844; padding:7px 9px; animation:banknote-drift 21s ease-in-out infinite; }
 .world-banknote::after { content:''; position:absolute; inset:5px; border:1px solid #527d69; pointer-events:none; }
-.world-banknote span { font-size:.42rem; letter-spacing:.12em; }
+.world-banknote span { font-size:var(--t-12); letter-spacing:.12em; }
 .world-banknote strong { display:block; font:700 2.1rem/.9 'Fraunces',Georgia,serif; }
 .world-banknote i { position:absolute; right:13px; bottom:10px; font-size:1.2rem; font-style:normal; }
-.world-stamp { right:2%; bottom:13%; width:92px; height:92px; border:2px solid #9e654d; border-radius:50%; transform:rotate(14deg); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:#905b48; font-size:.6rem; font-weight:800; letter-spacing:.07em; line-height:1.4; }
-.world-stamp span { font-size:.5rem; }
-.art-caption { bottom:4%; right:18%; font-size:.6rem; letter-spacing:.16em; font-weight:700; color:#45655f; }
-.landing-ticker { overflow:hidden; display:flex; white-space:nowrap; justify-content:space-around; gap:35px; padding:14px 20px; background:#164c4b; color:#f0e8d3; border-block:1px solid #537e71; font-size:.67rem; letter-spacing:.21em; font-weight:700; }
+.world-stamp { right:2%; bottom:13%; width:92px; height:92px; border:2px solid #9e654d; border-radius:50%; transform:rotate(14deg); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:#905b48; font-size:var(--t-12); font-weight:800; letter-spacing:.07em; line-height:1.4; }
+.world-stamp span { font-size:var(--t-12); }
+.art-caption { bottom:4%; right:18%; font-size:var(--t-12); letter-spacing:.16em; font-weight:700; color:#45655f; }
+.landing-ticker { overflow:hidden; display:flex; white-space:nowrap; justify-content:space-around; gap:35px; padding:14px 20px; background:#164c4b; color:#f0e8d3; border-block:1px solid #537e71; font-size:var(--t-12); letter-spacing:.18em; font-weight:700; }
 .landing-ticker span:nth-child(even) { color:#ca966c; }
 .city-section,.crew-section,.rules-section { padding:clamp(75px,9vw,145px) clamp(22px,6vw,110px); }
 .city-section { background:#eee9d7; border-bottom:1px solid #adbaa9; }
@@ -76,7 +75,7 @@ button:disabled { background-color:var(--disabled-bg); color:var(--disabled-fg);
 .route-line { position:absolute; top:0; left:8%; right:8%; border-top:1px dashed #977b63; display:flex; justify-content:space-between; color:#a26448; transform:translateY(-50%); }
 .route-line span { background:#eee9d7; padding:0 8px; font-size:1.3rem; }
 .city-route article { padding:38px 4px 0; border-top:1px solid #54776e; }
-.city-route small { color:#986146; font-size:.64rem; font-weight:700; letter-spacing:.12em; }
+.city-route small { color:#986146; font-size:var(--t-12); font-weight:700; letter-spacing:.12em; }
 .city-route h3 { font:700 clamp(1.5rem,2.5vw,2.6rem)/1.07 'Fraunces',Georgia,serif; letter-spacing:-.04em; margin:24px 0 12px; }
 .city-route article p { max-width:310px; color:#506d65; font-size:.9rem; line-height:1.65; }
 .crew-section { background:#123d42; color:#f3ebd6; position:relative; overflow:hidden; }
@@ -98,7 +97,7 @@ button:disabled { background-color:var(--disabled-bg); color:var(--disabled-fg);
 .rules-section li strong { font:700 1.5rem 'Fraunces',Georgia,serif; text-transform:none; letter-spacing:-.03em; }
 .rules-section li span { color:#48665d; font-size:.9rem; }
 .rules-end { border-top:1px solid #7d9989; padding-top:28px; font-family:'Fraunces',Georgia,serif; font-size:1.2rem; }
-.rules-end small { display:block; margin-top:8px; color:#8e644b; font:700 .61rem 'DM Sans',sans-serif; letter-spacing:.12em; }
+.rules-end small { display:block; margin-top:8px; color:#8e644b; font:700 var(--t-12) 'DM Sans',sans-serif; letter-spacing:.12em; }
 .site-footer { background:#0c3237; border-top:1px solid #63877a; }
 .site-footer a { font:700 1.15rem 'Fraunces',Georgia,serif; }
 
@@ -109,19 +108,16 @@ button:disabled { background-color:var(--disabled-bg); color:var(--disabled-fg);
 .player-rail,.command-panel { background:#0d343a; }
 .player-rail { border-right:1px solid #66867b; }
 .command-panel { border-left:1px solid #66867b; }
-.rail-heading,.command-heading,.balance-block,.turn-action,.inspector,.activity { border-bottom:1px solid #628278; }
-.rail-heading h2,.command-heading h2,.map-heading h1,.purchase-card strong,.inspector h3,.balance-block strong { font-family:'Fraunces',Georgia,serif; letter-spacing:-.04em; text-transform:none; }
+.rail-heading,.command-heading,.balance-block,.turn-action,.inspector { border-bottom:1px solid #628278; }
+.rail-heading h2,.command-heading h2,.map-heading h1,.inspector h3,.balance-block strong { font-family:'Fraunces',Georgia,serif; letter-spacing:-.04em; text-transform:none; }
 .player-row { background:#17464a; border:1px solid #6b8d81; border-radius:2px; }
 .player-row.active { background:#23534f; border-color:#e5c899; box-shadow:inset 3px 0 0 #d7ad70; }
-.player-token { background:#d1d2ae; border:1px solid #d9dbc7; border-radius:50% 50% 3px 3px; }
 .game-page .eyebrow { letter-spacing:.16em; }
 .map-stage { background:transparent; }
 .map-frame { background:#dfdbc1; border:5px double #c6b994; outline:1px solid #102f33; box-shadow:0 14px 28px #061f2444; }
-.map-compass,.map-scale,.map-directory > summary { border:1px solid #234749; box-shadow:2px 2px 0 #234749; }
-.die { border:1px solid #385456; box-shadow:2px 2px 0 #d7ad70; border-radius:3px; background:#f6eed9; }
-.purchase-card,.notice { background:#19464a; border:1px solid #9a997d; }
-.inspector-actions button,.portfolio > button { background:#19474b; border:1px solid #78998a; }
-.portfolio > button:hover:not(:disabled),.inspector-actions button:hover:not(:disabled) { background:#28635d; }
+.map-directory > summary { border:1px solid #234749; box-shadow:2px 2px 0 #234749; }
+.portfolio > button { background:#19474b; border:1px solid #78998a; }
+.portfolio > button:hover:not(:disabled) { background:#28635d; }
 .modal-card,.gameplay-dialog { background:#eee8d4; border:1px solid #153d3f; box-shadow:0 0 0 5px #eee8d4,0 0 0 6px #153d3f,12px 16px 30px #071c2080; }
 .modal-card::before { content:'✦'; position:absolute; top:12px; left:15px; color:#ae7957; font-size:.8rem; pointer-events:none; }
 .modal-card h2 { font-family:'Fraunces',Georgia,serif; font-weight:700; letter-spacing:-.055em; text-transform:none; }
@@ -130,7 +126,7 @@ button:disabled { background-color:var(--disabled-bg); color:var(--disabled-fg);
 .modal-card input,.field-label input,.gameplay-dialog select { border:1px solid #476862; background:#fcf8e9; border-radius:2px; }
 .landing-card-art { background:#e2e3cb; border:1px solid #466661; outline:3px solid #e2e3cb; box-shadow:0 0 0 4px #466661; overflow:visible; }
 .dealer-portrait { filter:drop-shadow(-4px 3px 0 #1b414139); }
-.deed-ribbon { background:#184b48; font-size:.61rem; border:1px solid #d4bb8d; }
+.deed-ribbon { background:#184b48; font-size:var(--t-12); border:1px solid #d4bb8d; }
 .gameplay-actions > button,.inspector-stats > div,.special-outcome { border-width:1px; }
 .gameplay-dialog [role='alert'] { color:#852f28; }
 .economy-panel,.online-panel,.economy-card,.online-card { border:1px solid #8eab99; background:#174449; color:#f5efdc; padding:16px; }
@@ -142,5 +138,5 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
 .modal-card button:focus-visible,.modal-card input:focus-visible,.modal-card select:focus-visible,.landing-page button:focus-visible,.landing-page a:focus-visible { outline-color:#9d5039; }
 @media (max-width:1150px) { .hero-scene { grid-template-columns:45% 55%; } .hero-copy h1 { font-size:clamp(4.5rem,8.2vw,8rem); } .hero-art { min-height:500px; } }
 @media (max-width:950px) { .hero-scene { grid-template-columns:1fr; padding-top:65px; } .hero-copy { max-width:740px; } .hero-copy h1 { font-size:clamp(5rem,13vw,9rem); } .hero-art { margin:0; min-height:450px; height:70vw; max-height:680px; } .city-world { left:50%; right:auto; transform:translateX(-50%); animation:none; width:min(100%,720px); } .world-banknote { left:13%; } .game-layout { grid-template-columns:1fr; } .player-rail,.command-panel { border:0; border-bottom:1px solid #66867b; } .city-route { gap:18px; } }
-@media (max-width:600px) { .landing-page .site-nav { height:68px; padding-inline:14px; } .brand-lockup { font-size:1rem; } .hero-scene { padding:55px 18px 38px; } .hero-copy h1 { font-size:clamp(3.9rem,14.5vw,6.7rem); } .hero-kicker { font-size:1.4rem; } .hero-lede { font-size:.9rem; } .hero-footnote { font-size:.52rem; } .hero-art { min-height:330px; height:94vw; } .world-label { font-size:.44rem; padding:6px; } .world-label-north { right:0; top:11%; } .world-label-south { left:5%; bottom:14%; } .world-banknote { width:91px; height:57px; top:7%; left:5%; padding:4px; } .world-banknote strong { font-size:1.4rem; } .world-banknote i { right:8px; bottom:6px; } .world-stamp { width:67px; height:67px; font-size:.43rem; bottom:7%; right:2%; } .art-caption { bottom:1%; right:20%; font-size:.44rem; } .city-section,.crew-section,.rules-section { padding:70px 20px; } .section-intro { margin-bottom:40px; } .section-intro h2,.crew-section h2,.rules-section h2 { font-size:clamp(2.6rem,11vw,4.5rem); } .city-route { display:block; } .city-route article { padding:25px 0; } .route-line { display:none; } .rules-section li:nth-child(odd) { border-right:0; } .rules-section li { padding:25px 5px 27px 42px; } .rules-end { flex-direction:column; align-items:stretch; } .game-page { padding-bottom:var(--turn-bar-space); } .turn-action { position:fixed; inset:auto 0 0; z-index:10; background:#0c3439; padding:10px 16px calc(12px + env(safe-area-inset-bottom)); margin:0; border-top:1px solid #a6c4a9; border-bottom:0; } .turn-action .roll-button { min-height:48px; } .modal-card,.gameplay-dialog { box-shadow:0 0 0 3px #eee8d4,0 0 0 4px #153d3f,8px 10px 20px #071c2070; } }
+@media (max-width:600px) { .landing-page .site-nav { height:68px; padding-inline:14px; } .brand-lockup { font-size:1rem; } .hero-scene { padding:55px 18px 38px; } .hero-copy h1 { font-size:clamp(3.9rem,14.5vw,6.7rem); } .hero-kicker { font-size:1.4rem; } .hero-lede { font-size:.9rem; } .hero-footnote { font-size:var(--t-12); } .hero-art { min-height:330px; height:94vw; } .world-label { font-size:var(--t-12); padding:6px; } .world-label-north { right:0; top:11%; } .world-label-south { left:5%; bottom:14%; } .world-banknote { width:91px; height:57px; top:7%; left:5%; padding:4px; } .world-banknote strong { font-size:1.4rem; } .world-banknote i { right:8px; bottom:6px; } .world-stamp { width:67px; height:67px; font-size:var(--t-12); bottom:7%; right:2%; } .art-caption { bottom:1%; right:20%; font-size:var(--t-12); } .city-section,.crew-section,.rules-section { padding:70px 20px; } .section-intro { margin-bottom:40px; } .section-intro h2,.crew-section h2,.rules-section h2 { font-size:clamp(2.6rem,11vw,4.5rem); } .city-route { display:block; } .city-route article { padding:25px 0; } .route-line { display:none; } .rules-section li:nth-child(odd) { border-right:0; } .rules-section li { padding:25px 5px 27px 42px; } .rules-end { flex-direction:column; align-items:stretch; } .game-page { padding-bottom:var(--turn-bar-space); } .turn-action { position:fixed; inset:auto 0 0; z-index:10; background:#0c3439; padding:10px 16px calc(12px + env(safe-area-inset-bottom)); margin:0; border-top:1px solid #a6c4a9; border-bottom:0; } .turn-action .roll-button { min-height:48px; } .modal-card,.gameplay-dialog { box-shadow:0 0 0 3px #eee8d4,0 0 0 4px #153d3f,8px 10px 20px #071c2070; } }
 @media (prefers-reduced-motion:reduce) { .city-world,.world-route,.world-banknote,.crew-lineup svg,.ambience-route { animation:none!important; } }
