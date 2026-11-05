@@ -4,6 +4,10 @@ async function enter(page: Page) {
   await page.goto('/')
   await page.getByRole('button', { name: 'Enter the city' }).first().click()
   await expect(page.locator('.city-map-canvas canvas')).toBeVisible()
+  const onboarding = page.getByRole('dialog', { name: /Welcome to Crown & Capital|Read the table|Choose your table/ })
+  await expect(onboarding).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(onboarding).not.toBeVisible()
 }
 async function saved(page: Page) {
   return page.evaluate(() => {

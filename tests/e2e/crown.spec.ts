@@ -4,6 +4,11 @@ async function enter(page: Page) {
   await page.goto('/')
   await page.getByRole('button', { name: 'Enter the city' }).first().click()
   await expect(page.getByRole('heading', { name: 'THE CITY, in play.' })).toBeVisible()
+  // First-run onboarding is offered on a fresh local table at turn zero; these flows dismiss it.
+  const onboarding = page.getByRole('dialog', { name: /Welcome to Crown & Capital|Read the table|Choose your table/ })
+  await expect(onboarding).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(onboarding).not.toBeVisible()
 }
 
 async function findAvailableDeed(page: Page) {
@@ -192,6 +197,10 @@ test('visual checkpoints for home, loop, detailed deeds and mobile', async ({ pa
   await page.screenshot({ path: testInfo.outputPath('home-desktop.png'), fullPage: true })
   await page.getByRole('button', { name: 'Enter the city' }).first().click()
   await expect(page.locator('canvas')).toBeVisible()
+  const onboarding = page.getByRole('dialog', { name: /Welcome to Crown & Capital|Read the table|Choose your table/ })
+  await expect(onboarding).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(onboarding).not.toBeVisible()
   await page.waitForTimeout(600)
   await page.screenshot({ path: testInfo.outputPath('board-loop.png') })
   await page.getByText('Browse all 144 spaces', { exact: true }).click()

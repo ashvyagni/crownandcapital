@@ -5,6 +5,10 @@ async function enterMobile(page: Page) {
   await page.goto('/')
   await page.getByRole('button', { name: 'Enter the city' }).first().click()
   await expect(page.getByRole('heading', { name: 'THE CITY, in play.' })).toBeVisible()
+  const onboarding = page.getByRole('dialog', { name: /Welcome to Crown & Capital|Read the table|Choose your table/ })
+  await expect(onboarding).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(onboarding).not.toBeVisible()
 }
 
 test('mobile turn guidance stays visible inside the fixed action bar', async ({ page }) => {

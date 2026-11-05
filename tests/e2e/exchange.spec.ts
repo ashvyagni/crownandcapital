@@ -3,6 +3,11 @@ import { expect, test, type Page } from '@playwright/test'
 async function enter(page: Page) {
   await page.goto('/')
   await page.getByRole('button', { name: 'Enter the city' }).first().click()
+  // First-run onboarding is offered on a fresh local table at turn zero; these flows dismiss it.
+  const onboarding = page.getByRole('dialog', { name: /Welcome to Crown & Capital|Read the table|Choose your table/ })
+  await expect(onboarding).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(onboarding).not.toBeVisible()
 }
 async function deed(page: Page) {
   for (let i = 0; i < 16; i++) {
@@ -189,6 +194,10 @@ test('mobile home and exchange retain composition, motion fallback and readable 
   await page.screenshot({ path: testInfo.outputPath('home-mobile.png'), fullPage: true })
   expect(await page.locator('.world-route').evaluate(el => getComputedStyle(el).animationName)).toBe('none')
   await page.getByRole('button', { name: 'Enter the city' }).first().click()
+  const onboarding = page.getByRole('dialog', { name: /Welcome to Crown & Capital|Read the table|Choose your table/ })
+  await expect(onboarding).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(onboarding).not.toBeVisible()
   await page.getByRole('button', { name: 'City exchange', exact: true }).click()
   const card = page.getByRole('dialog')
   await card.getByRole('tab', { name: 'Bank', exact: true }).click()

@@ -10,6 +10,7 @@ import { OnlineLobby } from './components/OnlineLobby'
 import { AudioControls } from './components/AudioControls'
 import { DiceTray } from './components/DiceTray'
 import { CityCommentary } from './components/CityCommentary'
+import { Onboarding } from './components/Onboarding'
 import { useTurnPresentation } from './hooks/useTurnPresentation'
 import { usePresentationPreferences } from './hooks/usePresentationPreferences'
 import { useOnlineRoom, statusLabel } from './hooks/useOnlineRoom'
@@ -19,6 +20,7 @@ import { botRng, step } from './game/bot'
 import { ownershipGroup, ownsGroup, redemptionCost, rentFor, saleValue, validateRoster, type Property } from './game'
 import { clearLocalSession, exportLocalSession, importLocalSession, loadLocalSession, saveLocalSession } from './services/localSession'
 import { clearPracticeSeats, loadPracticeSeats, savePracticeSeats } from './services/practiceSeats'
+import { hasOnboardingDismissed, markOnboardingDismissed } from './services/onboarding'
 import type { AudioCue } from './services/audio'
 import { requestId } from './services/requestId'
 import { presentationEvents } from './game/presentation'
@@ -66,6 +68,8 @@ function App() {
   const [localTableId, setLocalTableId] = useState(0)
   const [botSeats, setBotSeats] = useState<string[] | null>(bootBots)
   const [focusRequest, setFocusRequest] = useState(0)
+  const [onboardingDismissed, setOnboardingDismissed] = useState(() => hasOnboardingDismissed())
+  const dismissOnboarding = () => { setOnboardingDismissed(true); markOnboardingDismissed() }
   const preferences = usePresentationPreferences()
   const online = useOnlineRoom()
   const audio = useGameAudio()
@@ -98,6 +102,8 @@ function App() {
   const landedRent = session.receipts.filter(r => r.turn === game.turn && r.kind === 'rent').at(-1)
   const winner = players.filter(p => p.status === 'active').length === 1 ? players.find(p => p.status === 'active') : null
   const gameOver = !!winner
+  // First-run onboarding: a local/practice table at turn zero offers orientation before play starts.
+  const onboardingOpen = mode === 'local' && view === 'game' && game.turn === 0 && !onboardingDismissed
   const latest = useRef({ session, identity: tableIdentity })
 
   useEffect(() => { if (!deepLink.current && savedOnline()) online.resume() }, [online.resume])
@@ -168,6 +174,8 @@ function App() {
     void audio.unlock()
     setError(null)
     if (mode === 'online') { online.send(command, session.revision); return }
+    // The first roll of a fresh local table closes the first-run onboarding and stamps its marker.
+    if (command.type === 'roll') dismissOnboarding()
     try {
       const next = applyCommand(local, actorOverride ?? actor.id, command, requestId())
       setLocal(next)
@@ -199,6 +207,8 @@ function App() {
     setLocal(createSession(1847, [humanName, ...botNames], [characters[0] ?? 0, 1, 2, 3]))
     setBotSeats(['player-2', 'player-3', 'player-4'])
     setDialog(null); setView('game'); setMode('local'); setZoom(1); setError(null)
+    // Choosing a practice table is an explicit start: no onboarding for the fresh automated seat.
+    dismissOnboarding()
   }
   const addSeat = () => {
     const issue = validateRoster([...names, newName.trim()])
@@ -276,6 +286,7 @@ function App() {
         </aside>
       </div>
     </main>}
+    {onboardingOpen && <Onboarding onDismiss={dismissOnboarding} onPractice={commitPractice} />}
     {(error || saveError) && <div className="global-notice" role="alert"><span>{error ?? saveError}</span><button aria-label="Dismiss message" onClick={() => { setError(null); setSaveError(null) }}>×</button></div>}
     {invite?.invalid && dialog === null && <DialogFrame title="That room link did not work" close={dismissInvite}>
       <p>This invite points at <code>{window.location.pathname}</code>, which this server does not recognise. Room links look like <code>/r/</code> followed by a 10-character room code.</p>
