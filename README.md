@@ -69,3 +69,4 @@ Install the Playwright Chromium browser if your environment does not already pro
 Online transport uses `ws`, not Colyseus. Storage is a single-process atomic-file store, not PostgreSQL or a horizontally scalable service. No password accounts, public hosting, matchmaking, host takeover/AFK bot, cross-device account recovery, full debt workout, balance simulation, music score or frame-animated asset pipeline is claimed. Use an HTTPS reverse proxy, durable volume, edge abuse controls and a deployment/security review before public launch. The deferred Phaser chunk still produces a size advisory.
 
 Reference study and its incomplete live-page rendering are recorded in `docs/VISUAL_QA.md`; no proprietary reference artwork was imported. See `docs/ECONOMY.md`, `docs/MULTIPLAYER_PROTOCOL.md` and `docs/TESTING.md` for exact rules and evidence.
+## Version 0.1.0
