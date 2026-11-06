@@ -1,13 +1,14 @@
-import { useState } from 'react'
+import { useState, type KeyboardEvent } from 'react'
 import { Character } from './Character'
 import { AUCTION_INCREMENT, ENERGY_COST, FACTORY_COST, FACTORY_SALE_PRICE, FACTORY_UPGRADE_COST, MATERIAL_COST, type GameSession, type SessionCommand } from '../game/session'
 import type { Property } from '../game'
 
 export const cr = (amount: number) => `CR ${amount.toLocaleString('en-GB')}`
 export type SendCommand = (command: SessionCommand, actorId?: string) => void
-type Props = { session: GameSession; playerId: string; online: boolean; busy: boolean; send: SendCommand; initialTab?: string; defaultBidder?: string }
+type Props = { session: GameSession; playerId: string; online: boolean; busy: boolean; send: SendCommand; initialTab?: string; defaultBidder?: string; panelId?: string; panelLabelledBy?: string }
+const EXCHANGE_TABS = ['Factories', 'Bank', 'Auctions', 'Deals']
 
-export function AuctionPanel({ session, playerId, online, busy, send, defaultBidder }: Props) {
+export function AuctionPanel({ session, playerId, online, busy, send, defaultBidder, panelId, panelLabelledBy }: Props) {
   const auction = session.economy.auction
   // Practice tables pass the human seat so an auction on a bot's landing never
   // preselects the automated bidder holding the desk.
@@ -18,7 +19,7 @@ export function AuctionPanel({ session, playerId, online, busy, send, defaultBid
   const eligible = session.game.players[actor]?.status === 'active' && !auction.folded.includes(actor)
   const property = session.game.spaces.find(p => p.id === auction.propertyId)
   const minimum = auction.bid + AUCTION_INCREMENT
-  return <section className="auction-table" aria-label="Live auction">
+  return <section className="auction-table" role={panelId && panelLabelledBy ? 'tabpanel' : undefined} id={panelId} aria-labelledby={panelLabelledBy} aria-label={panelLabelledBy ?? 'Live auction'}>
     <p className="eyebrow">The auctioneer's desk / live bids</p><h3>{property?.name}</h3>
     <div className="auction-price">{cr(auction.bid)}<small>{auction.leaderId ? `Leading: ${session.game.players[auction.leaderId].name}` : 'No bids yet'}</small></div>
     {!online && <label className="field-label">Bidding as<select value={bidder} onChange={e => setBidder(e.target.value)}>{Object.values(session.game.players).filter(p => p.status === 'active').map(p => <option key={p.id} value={p.id}>{p.name}{auction.folded.includes(p.id) ? ' · folded' : ''}</option>)}</select></label>}
@@ -50,12 +51,26 @@ export function EconomyDesk(props: Props) {
   const locked = busy || !current || !!session.economy.auction
   const held = (id: string) => session.economy.loans.some(l => l.propertyId === id)
   const transferable = (p: Property) => !p.mortgaged && !p.development && !held(p.id) && !session.economy.factories.some(f => f.propertyId === p.id)
+  const moveExchangeTab = (event: KeyboardEvent<HTMLDivElement>) => {
+    const order = ['Factories', 'Bank', 'Auctions', 'Deals']
+    const index = order.indexOf(tab)
+    let nextIndex = index
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') nextIndex = (index + 1) % order.length
+    else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') nextIndex = (index - 1 + order.length) % order.length
+    else if (event.key === 'Home') nextIndex = 0
+    else if (event.key === 'End') nextIndex = order.length - 1
+    else return
+    event.preventDefault()
+    const next = order[nextIndex]
+    setTab(next)
+    document.getElementById(`economy-tab-${next}`)?.focus()
+  }
   return <div className="economy-desk">
-    <div className="economy-tabs" role="tablist" aria-label="Exchange departments">{['Factories', 'Bank', 'Auctions', 'Deals'].map(name => <button key={name} role="tab" aria-selected={tab === name} onClick={() => setTab(name)}>{name}</button>)}</div>
+    <div className="economy-tabs" role="tablist" aria-label="Exchange departments" onKeyDown={moveExchangeTab}>{EXCHANGE_TABS.map(name => <button key={name} id={`economy-tab-${name}`} role="tab" aria-selected={tab === name} tabIndex={tab === name ? 0 : -1} onClick={() => { setTab(name); document.getElementById(`economy-tab-${name}`)?.focus() }}>{name}</button>)}</div>
     <p className="economy-balance">{session.game.players[playerId]?.name} <strong>{cr(session.game.players[playerId]?.cash ?? 0)}</strong></p>
     {!current && <p className="modal-footnote">Financing and production are available on your turn. You can still bid at auction or respond to an offer addressed to you.</p>}
     {(tab === 'Factories' || tab === 'Bank') && <label className="field-label">Owned deed<select value={deed?.id ?? ''} onChange={e => setSelected(e.target.value)}>{!owned.length && <option value="">Acquire a deed first</option>}{owned.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>}
-    {tab === 'Factories' && <section className="economy-card">
+    {tab === 'Factories' && <section className="economy-card" role="tabpanel" id="economy-tabpanel-Factories" aria-labelledby="economy-tab-Factories">
       <div className="economy-illustration" aria-hidden="true">▥ <span>THE WORKS / INDUSTRIAL LEDGER</span></div>
       <p>Build on a vacant, unencumbered deed. Each production cycle uses <b>2 materials + 1 energy per good</b>, once per owner turn, up to the factory's level.</p>
       <button className="primary-button" disabled={locked || !deed || !transferable(deed)} onClick={() => send({ type: 'buildFactory', propertyId: deed?.id })}>Build factory · {cr(FACTORY_COST)}</button>

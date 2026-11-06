@@ -36,7 +36,7 @@ export function CityMap({ state, onSelect, zoom = 1, selectedId, onZoomChange, f
     // allocation a frame so that abandoned mounts never create a second canvas.
     const frame = requestAnimationFrame(() => {
       if (disposed || !hostRef.current) return
-      game = new Phaser.Game({ ...cityGameConfig, parent: hostRef.current, scene: [scene] })
+      game = new Phaser.Game({ ...cityGameConfig, parent: hostRef.current, input: { keyboard: { target: hostRef.current } }, scene: [scene] })
       game.events.once(Phaser.Core.Events.READY, connect)
       if (game.isBooted) connect()
     })
@@ -74,7 +74,7 @@ export function CityMap({ state, onSelect, zoom = 1, selectedId, onZoomChange, f
   const matches = state.spaces.filter(space => `${space.name} ${space.space + 1}`.toLowerCase().includes(query.toLowerCase()))
 
   return <div className="city-map-shell">
-    <div ref={hostRef} className="city-map-canvas" aria-label="Illustrated city board. Drag to pan when zoomed, scroll to zoom, or use the space directory below." />
+    <div ref={hostRef} className="city-map-canvas" tabIndex={0} aria-label="Illustrated city board. Drag to pan when zoomed, scroll to zoom, or use the space directory below." aria-description="Illustrated city board. Arrow keys pan, plus and minus zoom, 0 reset the overview, and Home or F focus the active actor." />
     <div className="map-hint">144 stops · Closed city loop <span>Drag to pan / + to read deeds</span></div>
     <details className="map-directory" open={directoryOpen} onToggle={event => setDirectoryOpen(event.currentTarget.open)}>
       <summary>Browse all 144 spaces</summary>

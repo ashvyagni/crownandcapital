@@ -80,6 +80,9 @@ export class CityScene extends Phaser.Scene {
       this.setZoom(this.zoomLevel * (dy > 0 ? 0.88 : 1.12))
       this.zoomHandler?.(this.zoomLevel)
     })
+    // The board host owns tabindex, so Phaser listens here only while that
+    // element is focused and routes the board keys through the scene camera.
+    this.input.keyboard?.on('keydown', (event: KeyboardEvent) => this.handleBoardKey(event))
     if (this.snapshot) this.syncState(this.snapshot)
   }
 
@@ -139,6 +142,35 @@ export class CityScene extends Phaser.Scene {
     if (this.zoomLevel < 7) { this.setZoom(7); this.zoomHandler?.(this.zoomLevel) }
     const point = tilePosition(player.position)
     this.panTo(point.x, point.y)
+  }
+
+  private handleBoardKey(event: KeyboardEvent) {
+    const key = event.key
+    const camera = this.cameras?.main
+    if (key === 'ArrowLeft' || key === 'ArrowRight' || key === 'ArrowUp' || key === 'ArrowDown') {
+      event.preventDefault()
+      if (!camera) return
+      const step = 120
+      if (key === 'ArrowLeft') camera.scrollX -= step
+      else if (key === 'ArrowRight') camera.scrollX += step
+      else if (key === 'ArrowUp') camera.scrollY -= step
+      else camera.scrollY += step
+      return
+    }
+    if (key === '+' || key === '=') { event.preventDefault(); this.keyboardZoom(1.12); return }
+    if (key === '-' || key === '_') { event.preventDefault(); this.keyboardZoom(1 / 1.12); return }
+    if (key === '0') { event.preventDefault(); this.resetOverview(); return }
+    if (key === 'Home' || key === 'f') { event.preventDefault(); this.focusActive(); return }
+  }
+
+  private keyboardZoom(factor: number) {
+    this.setZoom(this.zoomLevel * factor)
+    this.zoomHandler?.(this.zoomLevel)
+  }
+
+  private resetOverview() {
+    this.setZoom(1)
+    this.zoomHandler?.(this.zoomLevel)
   }
 
   private focusSelection() {

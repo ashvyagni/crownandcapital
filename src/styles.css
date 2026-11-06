@@ -152,6 +152,7 @@ h1, h2, h3, p { margin-top: 0; }
 .map-controls button:hover { background: var(--red); }
 .map-frame { position: relative; margin-top: 17px; height: clamp(580px, 62vh, 850px); overflow: hidden; background: #e8d5ad; border: 7px solid #e9bd6c; box-shadow: 7px 7px 0 #071b29; }
 .city-map-canvas { position: absolute; inset: 0; }
+.city-map-canvas:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
 .city-map-canvas canvas { width: 100% !important; height: 100% !important; object-fit: contain; }
 .map-status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 18px; color: #d6dfd9; font-size: var(--t-12); }
 .command-heading, .balance-block, .turn-action, .inspector { padding-bottom: 17px; margin-bottom: 17px; border-bottom: 2px solid #3b5460; }
