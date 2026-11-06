@@ -49,7 +49,7 @@ Vite proxies `/ws` to the server. Read `.env.example` for actual environment opt
 
 ```bash
 npm run lint         # frontend and server TypeScript
-npm test             # 43 unit/rules/bot/persistence/geometry tests (8 Vitest files)
+npm test             # 45 unit/rules/bot/persistence/geometry tests (9 Vitest files)
 npm run test:server  # 2 real WebSocket integration tests, including 20 seats
 npm run test:e2e     # 35 Chromium tests; starts isolated frontend/server ports
 ```
