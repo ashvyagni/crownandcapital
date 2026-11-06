@@ -26,6 +26,9 @@ export async function startRoomServer(options: Options = {}) {
   const distDir = resolve(options.distDir ?? 'dist')
   const allowed = options.allowedOrigins ?? process.env.ALLOWED_ORIGINS?.split(',').map(s => s.trim()).filter(Boolean) ?? []
   const rooms = new Map<string, Room>()
+  const commandTimings: number[] = []
+  let persistenceErrors = 0
+  const startUptime = process.hrtime.bigint()
   await mkdir(dataDir, { recursive: true, mode: 0o700 })
   for (const file of await readdir(dataDir)) {
     if (!/^[A-F0-9]{10}\.json$/.test(file)) continue
@@ -42,13 +45,33 @@ export async function startRoomServer(options: Options = {}) {
     try {
       await writeFile(temp, JSON.stringify({ ...room, seats: room.seats.map(({ socket: _socket, ...s }) => s) }), { mode: 0o600, flag: 'wx' })
       await rename(temp, file)
-    } catch { await unlink(temp).catch(() => {}); throw new Error('The room could not be saved. No move was committed.') }
+    } catch { 
+      persistenceErrors++
+      await unlink(temp).catch(() => {}) 
+      throw new Error('The room could not be saved. No move was committed.') 
+    }
   }
   function send(ws: WebSocket, payload: unknown) { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(payload)) }
   function broadcast(room: Room, requestId?: string) { for (const seat of room.seats) if (seat.socket) send(seat.socket, { type: 'state', room: snapshot(room), selfId: seat.id, ...(requestId ? { requestId } : {}) }) }
   function error(ws: WebSocket, message: string, requestId?: string, code?: string, room?: Room, seat?: Seat) { send(ws, { type: 'error', message, ...(requestId ? { requestId } : {}), ...(code ? { code } : {}), ...(room && seat ? { room: snapshot(room), selfId: seat.id } : {}) }) }
   const server: Server = createServer(async (req, res) => {
     if (req.url === '/health') { res.writeHead(200, { 'content-type': 'application/json' }); res.end('{"ok":true}'); return }
+    if (req.url === '/metrics') {
+      const openConns = Array.from(wss.clients).filter(ws => ws.readyState === WebSocket.OPEN).length
+      const sorted = [...commandTimings].sort((a, b) => a - b)
+      const p50 = sorted.length > 0 ? sorted[Math.floor(sorted.length * 0.5)] : 0
+      const p95 = sorted.length > 0 ? sorted[Math.floor(sorted.length * 0.95)] : 0
+      res.writeHead(200, { 'content-type': 'application/json' })
+      res.end(JSON.stringify({
+        rooms: rooms.size,
+        conns: openConns,
+        command_latency_p50: p50,
+        command_latency_p95: p95,
+        persistence_errors: persistenceErrors,
+        uptime: Number(process.hrtime.bigint() - startUptime) / 1_000_000_000,
+      }))
+      return
+    }
     if (req.method !== 'GET' && req.method !== 'HEAD') { res.writeHead(405); res.end(); return }
     try {
       const pathname = decodeURIComponent(new URL(req.url ?? '/', 'http://localhost').pathname)
@@ -137,6 +160,7 @@ export async function startRoomServer(options: Options = {}) {
           const next = { ...room, started: true, session: createSession(randomBytes(4).readUInt32BE(0), room.seats.map(s => s.name), room.seats.map(s => s.character ?? 0)), seats: room.seats.map(s => ({ ...s, ids: [...s.ids, requestId].slice(-128) })), updatedAt: now }
           await persist(next); rooms.set(room.code, next); room = next; seat = next.seats.find(s => s.id === seat!.id)!; broadcast(next, requestId); return
         }
+        const cmdStart = process.hrtime.bigint()
         if (msg.type !== 'command' || !room.session) throw Error('Game not started')
         if (!Number.isSafeInteger(msg.revision) || msg.revision !== room.session.revision) { error(ws, 'Stale revision', requestId, 'STALE_REVISION', room, seat); return }
         if (!object(msg.command) || typeof msg.command.type !== 'string' || !/^[a-zA-Z]{1,32}$/.test(msg.command.type) || Object.keys(msg.command).length > 12 || Object.keys(msg.command).some(key => !['type', 'propertyId', 'amount', 'quantity', 'loanId', 'offerId', 'toId', 'giveCash', 'requestCash', 'givePropertyId', 'requestPropertyId'].includes(key))) throw Error('Invalid command')
@@ -144,6 +168,8 @@ export async function startRoomServer(options: Options = {}) {
         const nextSession = applyCommand(room.session, seat.id, msg.command as unknown as SessionCommand, requestId)
         const next = { ...room, session: nextSession, seats: room.seats.map(s => s.id === seat!.id ? { ...s, ids: [...s.ids, requestId].slice(-128) } : s), updatedAt: now }
         await persist(next); rooms.set(room.code, next); room = next; seat = next.seats.find(s => s.id === seat!.id)!; broadcast(next, requestId)
+        const cmdEnd = process.hrtime.bigint()
+        commandTimings.push(Number(cmdEnd - cmdStart) / 1_000_000)
       } catch (cause) { error(ws, cause instanceof Error ? cause.message : 'Request failed', requestId, 'REJECTED') }
     }).catch(() => { error(ws, 'Request failed') }) })
     ws.on('close', () => { clearTimeout(authenticationDeadline); const current = room && rooms.get(room.code); const activeSeat = current?.seats.find(s => s.id === seat?.id); if (current && activeSeat?.socket === ws) { activeSeat.socket = undefined; activeSeat.connected = false; broadcast(current) } })
