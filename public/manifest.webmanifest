@@ -1,0 +1,24 @@
+{
+  "name": "Crown & Capital",
+  "short_name": "Crown & Capital",
+  "description": "CROWN & CAPITAL — a living financial metropolis for friends. Roll, trade and build your way along the rail.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#e9e6d5",
+  "theme_color": "#11353b",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

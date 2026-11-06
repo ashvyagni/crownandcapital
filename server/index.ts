@@ -65,7 +65,7 @@ export async function startRoomServer(options: Options = {}) {
       const actual = await realpath(path)
       const root = await realpath(distDir)
       if (actual !== root && !actual.startsWith(root + sep)) { res.writeHead(403); res.end(); return }
-      const mime: Record<string, string> = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.woff2': 'font/woff2', '.ico': 'image/x-icon' }
+      const mime: Record<string, string> = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.woff2': 'font/woff2', '.ico': 'image/x-icon', '.webmanifest': 'application/manifest+json' }
       res.writeHead(200, { 'content-type': mime[extname(path)] ?? 'application/octet-stream', 'x-content-type-options': 'nosniff' })
       res.end(req.method === 'HEAD' ? undefined : await readFile(path))
     } catch { res.writeHead(400); res.end() }
